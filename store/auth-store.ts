@@ -93,8 +93,16 @@ export const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         console.log('Logout initiated');
+        set({ isLoading: true });
+        
         try {
-          // Clear all auth state first
+          // Clear persisted storage first
+          await AsyncStorage.removeItem('auth-storage');
+          await AsyncStorage.removeItem('workout-storage');
+          await AsyncStorage.removeItem('workout-session-storage');
+          console.log('Storage cleared');
+          
+          // Clear all auth state
           set({
             isAuthenticated: false,
             user: null,
@@ -103,13 +111,7 @@ export const useAuthStore = create<AuthStore>()(
             isInitialized: true, // Keep initialized true
           });
           
-          console.log('Auth state cleared');
-          
-          // Clear persisted storage
-          await AsyncStorage.removeItem('auth-storage');
-          await AsyncStorage.removeItem('workout-storage');
-          await AsyncStorage.removeItem('workout-session-storage');
-          console.log('Storage cleared');
+          console.log('Auth state cleared - logout complete');
         } catch (error) {
           console.error('Logout error:', error);
           // Force clear state even if storage clear fails
