@@ -24,6 +24,12 @@ export default function WelcomeScreen() {
   useEffect(() => {
     // Only run this redirect logic on the root page
     if (pathname === '/' && isReady && isAuthenticated && user) {
+      console.log('Index.tsx navigation check:', {
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        isInOnboarding,
+        pathname
+      });
+      
       if (user.hasCompletedOnboarding) {
         // Use replace to avoid navigation stack issues
         router.replace('/(tabs)');
@@ -32,7 +38,7 @@ export default function WelcomeScreen() {
         router.replace('/onboarding/profile');
       }
     }
-  }, [isReady, isAuthenticated, user, pathname]);
+  }, [isReady, isAuthenticated, user, pathname, isInOnboarding]);
 
   const handleGetStarted = () => {
     router.push('/auth/signup');

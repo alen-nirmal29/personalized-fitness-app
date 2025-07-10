@@ -41,8 +41,14 @@ export default function SignupScreen() {
 
   const handleSignup = async () => {
     if (validateForm()) {
-      await signup(email, password, name);
-      // Let the main index.tsx handle navigation after signup
+      try {
+        await signup(email, password, name);
+        // Navigate to onboarding after successful signup
+        router.replace('/onboarding/profile');
+      } catch (error) {
+        console.error('Signup failed:', error);
+        // Error is already handled in the store
+      }
     }
   };
 

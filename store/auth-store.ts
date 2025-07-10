@@ -144,6 +144,11 @@ export const useAuthStore = create<AuthStore>()(
           set({
             user: updatedUser,
           });
+          
+          // Force a small delay to ensure state is updated
+          setTimeout(() => {
+            console.log('Profile update completed, current user:', get().user);
+          }, 100);
         }
       },
 
