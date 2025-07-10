@@ -43,7 +43,7 @@ export const useAuthStore = create<AuthStore>()(
             id: '1',
             email,
             name: 'User',
-            hasCompletedOnboarding: false,
+            hasCompletedOnboarding: true, // Set to true for existing users
           };
           
           console.log('Login successful:', user);

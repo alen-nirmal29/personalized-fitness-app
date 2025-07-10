@@ -18,7 +18,7 @@ export default function SpecificGoalsScreen() {
   useEffect(() => {
     console.log('Specific goals screen mounted, setting onboarding flag');
     setInOnboarding(true);
-  }, [setInOnboarding]);
+  }, []);
 
   const handleNext = async () => {
     console.log('Specific goals handleNext called');

@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
-import HumanModel3D from '@/components/HumanModel3D';
-import BodyModelCanvas from '@/components/BodyModelCanvas';
+import Human2DModel from '@/components/Human2DModel';
 import { useAuthStore } from '@/store/auth-store';
 import { BodyMeasurements } from '@/types/user';
 
@@ -25,14 +24,14 @@ export default function BodyModelScreen() {
   useEffect(() => {
     console.log('Body model screen mounted, setting onboarding flag');
     setInOnboarding(true);
-  }, [setInOnboarding]);
+  }, []);
 
-  const handleMeasurementsChange = (newMeasurements: Record<string, number>) => {
+  const handleMeasurementsChange = useCallback((newMeasurements: Record<string, number>) => {
     setMeasurements(prev => ({
       ...prev,
       ...newMeasurements,
     }));
-  };
+  }, []);
 
   const handleNext = async () => {
     console.log('Body model handleNext called');
@@ -74,13 +73,13 @@ export default function BodyModelScreen() {
       <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>Your 3D Body Model</Text>
+          <Text style={styles.title}>Your Body Model</Text>
           <Text style={styles.subtitle}>
-            This model is generated based on your height, weight, and gender
+            This realistic 2D model is generated based on your height, weight, and gender
           </Text>
         </View>
 
-        <HumanModel3D 
+        <Human2DModel 
           user={user}
           interactive={true}
           onMeasurementChange={handleMeasurementsChange}
@@ -89,7 +88,7 @@ export default function BodyModelScreen() {
         <View style={styles.instructionsContainer}>
           <Text style={styles.instructionsTitle}>Customize Your Body Model</Text>
           <Text style={styles.instructionsText}>
-            • Drag anywhere to rotate the model 360 degrees
+            • Realistic human body structure with gender-specific features
           </Text>
           <Text style={styles.instructionsText}>
             • Tap anchor points (colored circles) to adjust body proportions

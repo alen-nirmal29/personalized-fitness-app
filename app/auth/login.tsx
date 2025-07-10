@@ -36,7 +36,12 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (validateForm()) {
-      await login(email, password);
+      try {
+        await login(email, password);
+        // Navigation will be handled by the root index.tsx based on auth state
+      } catch (error) {
+        console.error('Login failed:', error);
+      }
     }
   };
 

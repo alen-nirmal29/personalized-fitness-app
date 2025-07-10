@@ -198,7 +198,9 @@ export default function WorkoutSessionScreen() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    const minsStr = mins < 10 ? '0' + mins : mins.toString();
+    const secsStr = secs < 10 ? '0' + secs : secs.toString();
+    return `${minsStr}:${secsStr}`;
   };
 
   if (!currentSession || !todayWorkout) {
