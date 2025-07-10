@@ -1,5 +1,6 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { View, StyleSheet, Platform, Text, PanResponder, Dimensions, Animated } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, StyleSheet, Platform, Text, TouchableOpacity, Dimensions } from 'react-native';
+import { Svg, Path, Circle, G } from 'react-native-svg';
 import Colors from '@/constants/colors';
 import { UserProfile } from '@/types/user';
 
@@ -13,75 +14,68 @@ interface HumanModel3DProps {
 
 type AnchorPoint = {
   name: string;
-  position: { x: number; y: number; z: number };
+  x: number;
+  y: number;
   value: number;
   min: number;
   max: number;
   color: string;
 };
 
-type WireframePoint = {
-  x: number;
-  y: number;
-  z: number;
-};
-
-type WireframeLine = {
-  start: WireframePoint;
-  end: WireframePoint;
-};
-
 // Calculate realistic proportions based on user data
 function calculateProportions(user?: UserProfile | null) {
   if (!user) {
     return {
-      height: 1.7,
-      shoulderWidth: 0.45,
-      chestDepth: 0.25,
-      waistWidth: 0.35,
-      armLength: 0.6,
-      legLength: 0.9,
-      headSize: 0.22,
+      shoulderWidth: 45,
+      chestWidth: 40,
+      waistWidth: 35,
+      armWidth: 15,
+      legWidth: 20,
+      height: 300,
     };
   }
 
-  const heightM = (user.height || 170) / 100;
   const weight = user.weight || 70;
-  const bmi = weight / (heightM * heightM);
+  const height = user.height || 170;
+  const bmi = weight / ((height / 100) * (height / 100));
   
   // Gender-based proportions
   const isFemale = user.gender === 'female';
-  const isMale = user.gender === 'male';
   
-  // Base proportions (relative to height)
-  let shoulderWidthRatio = isFemale ? 0.24 : isMale ? 0.28 : 0.26;
-  let waistWidthRatio = isFemale ? 0.22 : isMale ? 0.24 : 0.23;
-  let chestDepthRatio = isFemale ? 0.12 : isMale ? 0.16 : 0.14;
+  // Base proportions
+  let shoulderWidth = isFemale ? 40 : 50;
+  let chestWidth = isFemale ? 35 : 45;
+  let waistWidth = isFemale ? 30 : 35;
+  let armWidth = isFemale ? 12 : 18;
+  let legWidth = isFemale ? 18 : 22;
   
   // Adjust for BMI
-  const bmiAdjustment = Math.max(0.8, Math.min(1.3, bmi / 22));
-  shoulderWidthRatio *= bmiAdjustment;
-  waistWidthRatio *= bmiAdjustment;
-  chestDepthRatio *= bmiAdjustment;
+  const bmiAdjustment = Math.max(0.7, Math.min(1.4, bmi / 22));
+  shoulderWidth *= bmiAdjustment;
+  chestWidth *= bmiAdjustment;
+  waistWidth *= bmiAdjustment;
+  armWidth *= bmiAdjustment;
+  legWidth *= bmiAdjustment;
   
   // Apply body composition if available
   if (user.bodyComposition) {
     const muscleFactor = 1 + ((user.bodyComposition.muscleMass || 40) - 40) / 200;
     const fatFactor = 1 + ((user.bodyComposition.bodyFat || 20) - 20) / 100;
     
-    shoulderWidthRatio *= muscleFactor;
-    chestDepthRatio *= muscleFactor;
-    waistWidthRatio *= fatFactor;
+    shoulderWidth *= muscleFactor;
+    chestWidth *= muscleFactor;
+    armWidth *= muscleFactor;
+    legWidth *= muscleFactor;
+    waistWidth *= fatFactor;
   }
   
   return {
-    height: heightM,
-    shoulderWidth: heightM * shoulderWidthRatio,
-    chestDepth: heightM * chestDepthRatio,
-    waistWidth: heightM * waistWidthRatio,
-    armLength: heightM * 0.35,
-    legLength: heightM * 0.52,
-    headSize: heightM * 0.13,
+    shoulderWidth: Math.round(shoulderWidth),
+    chestWidth: Math.round(chestWidth),
+    waistWidth: Math.round(waistWidth),
+    armWidth: Math.round(armWidth),
+    legWidth: Math.round(legWidth),
+    height: 300,
   };
 }
 
@@ -92,470 +86,180 @@ export default function HumanModel3D({
   interactive = true,
   onMeasurementChange,
 }: HumanModel3DProps) {
-  const [rotation, setRotation] = useState({ x: 0, y: 0 });
-  const [anchorPoints, setAnchorPoints] = useState<AnchorPoint[]>([]);
+  const [measurements, setMeasurements] = useState({
+    shoulders: user?.currentMeasurements?.shoulders || 50,
+    chest: user?.currentMeasurements?.chest || 50,
+    arms: user?.currentMeasurements?.arms || 50,
+    waist: user?.currentMeasurements?.waist || 50,
+    legs: user?.currentMeasurements?.legs || 50,
+  });
   const [selectedAnchor, setSelectedAnchor] = useState<string | null>(null);
   const [sliderValue, setSliderValue] = useState(50);
-  const [sliderPosition, setSliderPosition] = useState({ x: 0, y: 0 });
-  const rotationAnim = useRef(new Animated.Value(0)).current;
   
   const proportions = useMemo(() => calculateProportions(user), [user]);
   
-  // Initialize anchor points based on user proportions
-  useEffect(() => {
-    const points: AnchorPoint[] = [
-      {
-        name: 'shoulders',
-        position: { x: 0, y: proportions.height * 0.75, z: 0 },
-        value: user?.currentMeasurements?.shoulders || 50,
-        min: 20,
-        max: 80,
-        color: '#FF6B6B',
-      },
-      {
-        name: 'chest',
-        position: { x: 0, y: proportions.height * 0.6, z: 0 },
-        value: user?.currentMeasurements?.chest || 50,
-        min: 20,
-        max: 80,
-        color: '#4ECDC4',
-      },
-      {
-        name: 'arms',
-        position: { x: proportions.shoulderWidth * 0.7, y: proportions.height * 0.6, z: 0 },
-        value: user?.currentMeasurements?.arms || 50,
-        min: 20,
-        max: 80,
-        color: '#45B7D1',
-      },
-      {
-        name: 'waist',
-        position: { x: 0, y: proportions.height * 0.4, z: 0 },
-        value: user?.currentMeasurements?.waist || 50,
-        min: 20,
-        max: 80,
-        color: '#F9CA24',
-      },
-      {
-        name: 'legs',
-        position: { x: 0, y: proportions.height * 0.2, z: 0 },
-        value: user?.currentMeasurements?.legs || 50,
-        min: 20,
-        max: 80,
-        color: '#6C5CE7',
-      },
-    ];
-    setAnchorPoints(points);
-  }, [user, proportions]);
+  const anchorPoints: AnchorPoint[] = useMemo(() => [
+    {
+      name: 'shoulders',
+      x: 150,
+      y: 80,
+      value: measurements.shoulders,
+      min: 20,
+      max: 80,
+      color: '#FF6B6B',
+    },
+    {
+      name: 'chest',
+      x: 150,
+      y: 120,
+      value: measurements.chest,
+      min: 20,
+      max: 80,
+      color: '#4ECDC4',
+    },
+    {
+      name: 'arms',
+      x: 200,
+      y: 120,
+      value: measurements.arms,
+      min: 20,
+      max: 80,
+      color: '#45B7D1',
+    },
+    {
+      name: 'waist',
+      x: 150,
+      y: 180,
+      value: measurements.waist,
+      min: 20,
+      max: 80,
+      color: '#F9CA24',
+    },
+    {
+      name: 'legs',
+      x: 150,
+      y: 240,
+      value: measurements.legs,
+      min: 20,
+      max: 80,
+      color: '#6C5CE7',
+    },
+  ], [measurements]);
 
-  // Auto-rotation animation
-  useEffect(() => {
-    if (!selectedAnchor) {
-      const animation = Animated.loop(
-        Animated.timing(rotationAnim, {
-          toValue: 1,
-          duration: 8000,
-          useNativeDriver: false,
-        })
-      );
-      animation.start();
-      return () => animation.stop();
+  const handleAnchorPress = useCallback((anchorName: string) => {
+    if (!interactive) return;
+    
+    const anchor = anchorPoints.find(a => a.name === anchorName);
+    if (anchor) {
+      setSelectedAnchor(anchorName);
+      setSliderValue(anchor.value);
     }
-  }, [selectedAnchor, rotationAnim]);
-
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => interactive,
-    onMoveShouldSetPanResponder: () => interactive,
-    onPanResponderGrant: (evt) => {
-      if (!interactive) return;
+  }, [anchorPoints, interactive]);
+  
+  const handleSliderChange = useCallback((value: number) => {
+    if (!selectedAnchor) return;
+    
+    setSliderValue(value);
+    setMeasurements(prev => {
+      const newMeasurements = { ...prev, [selectedAnchor]: value };
       
-      const { locationX, locationY } = evt.nativeEvent;
-      
-      // Check if an anchor point was touched
-      const touchedAnchor = anchorPoints.find(anchor => {
-        const screenX = 200 + anchor.position.x * 100;
-        const screenY = 200 - anchor.position.y * 100;
-        const distance = Math.sqrt(
-          Math.pow(screenX - locationX, 2) + Math.pow(screenY - locationY, 2)
-        );
-        return distance < 40;
-      });
-      
-      if (touchedAnchor) {
-        setSelectedAnchor(touchedAnchor.name);
-        setSliderValue(touchedAnchor.value);
-        setSliderPosition({ x: locationX, y: locationY - 60 });
-        rotationAnim.stopAnimation();
+      // Notify parent
+      if (onMeasurementChange) {
+        onMeasurementChange(newMeasurements);
       }
-    },
-    onPanResponderMove: (evt, gestureState) => {
-      if (!interactive) return;
       
-      if (selectedAnchor) {
-        // Handle slider adjustment
-        const { dx } = gestureState;
-        const anchor = anchorPoints.find(a => a.name === selectedAnchor);
-        if (anchor) {
-          const newValue = Math.max(anchor.min, Math.min(anchor.max, anchor.value + dx * 0.2));
-          setSliderValue(newValue);
-          
-          // Update anchor point
-          setAnchorPoints(prev => prev.map(a => 
-            a.name === selectedAnchor ? { ...a, value: newValue } : a
-          ));
-          
-          // Notify parent
-          if (onMeasurementChange) {
-            const measurements = anchorPoints.reduce((acc, point) => {
-              acc[point.name] = point.name === selectedAnchor ? newValue : point.value;
-              return acc;
-            }, {} as Record<string, number>);
-            onMeasurementChange(measurements);
-          }
-        }
-      } else {
-        // Handle rotation
-        const { dx, dy } = gestureState;
-        setRotation(prev => ({
-          x: Math.max(-Math.PI/3, Math.min(Math.PI/3, prev.x + dy * 0.01)),
-          y: prev.y + dx * 0.01,
-        }));
-      }
-    },
-    onPanResponderRelease: () => {
-      setTimeout(() => setSelectedAnchor(null), 100);
-    },
-  });
-
-  // Generate wireframe points for human body
-  const generateWireframePoints = () => {
-    // Get measurements from anchor points
-    const measurements = anchorPoints.reduce((acc, point) => {
-      acc[point.name] = point.value;
-      return acc;
-    }, {} as Record<string, number>);
-    
-    const shoulderWidth = 0.8 * (measurements.shoulders / 50);
-    const chestWidth = 0.7 * (measurements.chest / 50);
-    const armWidth = 0.15 * (measurements.arms / 50);
-    const waistWidth = 0.6 * (measurements.waist / 50);
-    const legWidth = 0.2 * (measurements.legs / 50);
-    
-    const isFemale = user?.gender === 'female';
-    
-    // Define key body points for wireframe
-    const points: Record<string, WireframePoint> = {
-      // Head
-      headTop: { x: 0, y: 1.8, z: 0 },
-      headFront: { x: 0, y: 1.65, z: 0.1 },
-      headBack: { x: 0, y: 1.65, z: -0.1 },
-      headLeft: { x: -0.1, y: 1.65, z: 0 },
-      headRight: { x: 0.1, y: 1.65, z: 0 },
-      headBottom: { x: 0, y: 1.5, z: 0 },
-      
-      // Neck
-      neckTop: { x: 0, y: 1.5, z: 0 },
-      neckBottom: { x: 0, y: 1.4, z: 0 },
-      
-      // Shoulders
-      shoulderLeft: { x: -shoulderWidth, y: 1.4, z: 0 },
-      shoulderRight: { x: shoulderWidth, y: 1.4, z: 0 },
-      shoulderCenter: { x: 0, y: 1.4, z: 0 },
-      
-      // Arms
-      elbowLeft: { x: -shoulderWidth - 0.1, y: 1.1, z: 0 },
-      elbowRight: { x: shoulderWidth + 0.1, y: 1.1, z: 0 },
-      wristLeft: { x: -shoulderWidth - 0.1, y: 0.8, z: 0 },
-      wristRight: { x: shoulderWidth + 0.1, y: 0.8, z: 0 },
-      
-      // Chest/Torso
-      chestLeft: { x: -chestWidth, y: 1.2, z: 0 },
-      chestRight: { x: chestWidth, y: 1.2, z: 0 },
-      chestCenter: { x: 0, y: 1.2, z: 0 },
-      chestFront: { x: 0, y: 1.2, z: isFemale ? 0.15 : 0.1 },
-      
-      // Waist
-      waistLeft: { x: -waistWidth, y: 0.9, z: 0 },
-      waistRight: { x: waistWidth, y: 0.9, z: 0 },
-      waistCenter: { x: 0, y: 0.9, z: 0 },
-      
-      // Hips
-      hipLeft: { x: -waistWidth * 1.2, y: 0.7, z: 0 },
-      hipRight: { x: waistWidth * 1.2, y: 0.7, z: 0 },
-      hipCenter: { x: 0, y: 0.7, z: 0 },
-      
-      // Legs
-      kneeLeft: { x: -legWidth, y: 0.4, z: 0 },
-      kneeRight: { x: legWidth, y: 0.4, z: 0 },
-      ankleLeft: { x: -legWidth, y: 0.1, z: 0 },
-      ankleRight: { x: legWidth, y: 0.1, z: 0 },
-      footLeft: { x: -legWidth, y: 0, z: 0.1 },
-      footRight: { x: legWidth, y: 0, z: 0.1 },
-    };
-    
-    return points;
-  };
-  
-  // Generate wireframe lines connecting the points
-  const generateWireframeLines = (points: Record<string, WireframePoint>): WireframeLine[] => {
-    return [
-      // Head wireframe
-      { start: points.headTop, end: points.headFront },
-      { start: points.headTop, end: points.headBack },
-      { start: points.headTop, end: points.headLeft },
-      { start: points.headTop, end: points.headRight },
-      { start: points.headFront, end: points.headLeft },
-      { start: points.headLeft, end: points.headBack },
-      { start: points.headBack, end: points.headRight },
-      { start: points.headRight, end: points.headFront },
-      { start: points.headBottom, end: points.headFront },
-      { start: points.headBottom, end: points.headBack },
-      { start: points.headBottom, end: points.headLeft },
-      { start: points.headBottom, end: points.headRight },
-      
-      // Neck
-      { start: points.headBottom, end: points.neckTop },
-      { start: points.neckTop, end: points.neckBottom },
-      
-      // Shoulders
-      { start: points.neckBottom, end: points.shoulderCenter },
-      { start: points.shoulderLeft, end: points.shoulderRight },
-      { start: points.shoulderLeft, end: points.shoulderCenter },
-      { start: points.shoulderRight, end: points.shoulderCenter },
-      
-      // Arms
-      { start: points.shoulderLeft, end: points.elbowLeft },
-      { start: points.shoulderRight, end: points.elbowRight },
-      { start: points.elbowLeft, end: points.wristLeft },
-      { start: points.elbowRight, end: points.wristRight },
-      
-      // Chest/Torso
-      { start: points.shoulderLeft, end: points.chestLeft },
-      { start: points.shoulderRight, end: points.chestRight },
-      { start: points.chestLeft, end: points.chestRight },
-      { start: points.chestCenter, end: points.chestFront },
-      { start: points.chestLeft, end: points.chestCenter },
-      { start: points.chestRight, end: points.chestCenter },
-      
-      // Torso to waist
-      { start: points.chestLeft, end: points.waistLeft },
-      { start: points.chestRight, end: points.waistRight },
-      { start: points.chestCenter, end: points.waistCenter },
-      { start: points.waistLeft, end: points.waistRight },
-      { start: points.waistLeft, end: points.waistCenter },
-      { start: points.waistRight, end: points.waistCenter },
-      
-      // Waist to hips
-      { start: points.waistLeft, end: points.hipLeft },
-      { start: points.waistRight, end: points.hipRight },
-      { start: points.waistCenter, end: points.hipCenter },
-      { start: points.hipLeft, end: points.hipRight },
-      { start: points.hipLeft, end: points.hipCenter },
-      { start: points.hipRight, end: points.hipCenter },
-      
-      // Legs
-      { start: points.hipLeft, end: points.kneeLeft },
-      { start: points.hipRight, end: points.kneeRight },
-      { start: points.kneeLeft, end: points.ankleLeft },
-      { start: points.kneeRight, end: points.ankleRight },
-      { start: points.ankleLeft, end: points.footLeft },
-      { start: points.ankleRight, end: points.footRight },
-      
-      // Cross connections for 3D effect
-      { start: points.chestFront, end: points.chestLeft },
-      { start: points.chestFront, end: points.chestRight },
-    ];
-  };
-  
-  // Project 3D point to 2D screen coordinates
-  const project3DTo2D = (point: WireframePoint, rotX: number, rotY: number): { x: number; y: number } => {
-    // Apply rotation transformations
-    const cosX = Math.cos(rotX);
-    const sinX = Math.sin(rotX);
-    const cosY = Math.cos(rotY);
-    const sinY = Math.sin(rotY);
-    
-    // Rotate around Y axis (horizontal rotation)
-    let x = point.x * cosY - point.z * sinY;
-    let z = point.x * sinY + point.z * cosY;
-    let y = point.y;
-    
-    // Rotate around X axis (vertical rotation)
-    const newY = y * cosX - z * sinX;
-    z = y * sinX + z * cosX;
-    y = newY;
-    
-    // Project to 2D with perspective
-    const distance = 3;
-    const scale = distance / (distance + z);
-    
-    return {
-      x: x * scale * 120 + 200, // Scale and center
-      y: -y * scale * 120 + 220, // Flip Y and center
-    };
-  };
-  
-  // Render wireframe human model
-  const renderWireframeModel = () => {
-    const autoRotation = rotationAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, Math.PI * 2],
+      return newMeasurements;
     });
-    
-    const points = generateWireframePoints();
-    const lines = generateWireframeLines(points);
-    
-    const animatedStyle = {
-      transform: [
-        {
-          rotateY: selectedAnchor ? '0deg' : rotationAnim.interpolate({
-            inputRange: [0, 1],
-            outputRange: ['0deg', '360deg'],
-          }),
-        },
-      ],
-    };
-    
-    return (
-      <Animated.View style={[styles.wireframeContainer, animatedStyle]}>
-        {lines.map((line, index) => {
-          // Use static rotation values for wireframe calculation
-          const rotY = selectedAnchor ? 0 : 0; // Simplified for now
-          const rotX = 0;
-          
-          const start2D = project3DTo2D(line.start, rotX, rotY);
-          const end2D = project3DTo2D(line.end, rotX, rotY);
-          
-          const length = Math.sqrt(
-            Math.pow(end2D.x - start2D.x, 2) + Math.pow(end2D.y - start2D.y, 2)
-          );
-          const angle = Math.atan2(end2D.y - start2D.y, end2D.x - start2D.x) * 180 / Math.PI;
-          
-          return (
-            <View
-              key={index}
-              style={[
-                styles.wireframeLine,
-                {
-                  left: start2D.x,
-                  top: start2D.y,
-                  width: length,
-                  transform: [{ rotate: `${angle}deg` }],
-                },
-              ]}
-            />
-          );
-        })}
-        
-        {/* Render grid pattern overlay */}
-        {renderGridPattern(points)}
-      </Animated.View>
-    );
-  };
+  }, [selectedAnchor, onMeasurementChange]);
   
-  // Render grid pattern on the model
-  const renderGridPattern = (points: Record<string, WireframePoint>) => {
-    const gridLines = [];
-    const rotY = selectedAnchor ? rotation.y : 0;
-    const rotX = rotation.x;
+  const closeSlider = useCallback(() => {
+    setSelectedAnchor(null);
+  }, []);
+
+  // Generate human body path based on measurements
+  const generateBodyPath = useMemo(() => {
+    const isFemale = user?.gender === 'female';
+    const centerX = 150;
     
-    // Horizontal grid lines
-    for (let i = 0; i < 20; i++) {
-      const y = 0.1 + (i * 0.09);
-      const startPoint = { x: -0.8, y, z: 0 };
-      const endPoint = { x: 0.8, y, z: 0 };
-      
-      const start2D = project3DTo2D(startPoint, rotX, rotY);
-      const end2D = project3DTo2D(endPoint, rotX, rotY);
-      
-      const length = Math.sqrt(
-        Math.pow(end2D.x - start2D.x, 2) + Math.pow(end2D.y - start2D.y, 2)
-      );
-      const angle = Math.atan2(end2D.y - start2D.y, end2D.x - start2D.x) * 180 / Math.PI;
-      
-      gridLines.push(
-        <View
-          key={`h-${i}`}
-          style={[
-            styles.gridLine,
-            {
-              left: start2D.x,
-              top: start2D.y,
-              width: length,
-              transform: [{ rotate: `${angle}deg` }],
-            },
-          ]}
-        />
-      );
-    }
+    // Calculate widths based on measurements
+    const shoulderW = (measurements.shoulders / 50) * proportions.shoulderWidth;
+    const chestW = (measurements.chest / 50) * proportions.chestWidth;
+    const waistW = (measurements.waist / 50) * proportions.waistWidth;
+    const armW = (measurements.arms / 50) * proportions.armWidth;
+    const legW = (measurements.legs / 50) * proportions.legWidth;
     
-    // Vertical grid lines
-    for (let i = 0; i < 16; i++) {
-      const x = -0.8 + (i * 0.1);
-      const startPoint = { x, y: 0, z: 0 };
-      const endPoint = { x, y: 1.8, z: 0 };
-      
-      const start2D = project3DTo2D(startPoint, rotX, rotY);
-      const end2D = project3DTo2D(endPoint, rotX, rotY);
-      
-      const length = Math.sqrt(
-        Math.pow(end2D.x - start2D.x, 2) + Math.pow(end2D.y - start2D.y, 2)
-      );
-      const angle = Math.atan2(end2D.y - start2D.y, end2D.x - start2D.x) * 180 / Math.PI;
-      
-      gridLines.push(
-        <View
-          key={`v-${i}`}
-          style={[
-            styles.gridLine,
-            {
-              left: start2D.x,
-              top: start2D.y,
-              width: length,
-              transform: [{ rotate: `${angle}deg` }],
-            },
-          ]}
-        />
-      );
-    }
+    // Head
+    const headPath = `
+      M ${centerX} 20
+      C ${centerX - 15} 20, ${centerX - 20} 30, ${centerX - 20} 45
+      C ${centerX - 20} 60, ${centerX - 15} 70, ${centerX} 70
+      C ${centerX + 15} 70, ${centerX + 20} 60, ${centerX + 20} 45
+      C ${centerX + 20} 30, ${centerX + 15} 20, ${centerX} 20 Z
+    `;
     
-    return gridLines;
-  };
+    // Body outline
+    const bodyPath = `
+      M ${centerX} 70
+      L ${centerX - shoulderW/2} 80
+      L ${centerX - shoulderW/2 - armW} 85
+      L ${centerX - shoulderW/2 - armW} 140
+      L ${centerX - shoulderW/2 - armW + 5} 160
+      L ${centerX - shoulderW/2} 155
+      L ${centerX - chestW/2} 120
+      ${isFemale ? `C ${centerX - chestW/2 - 8} 125, ${centerX - chestW/2 - 8} 135, ${centerX - chestW/2} 140` : ''}
+      L ${centerX - waistW/2} 180
+      L ${centerX - waistW/2 - 5} 200
+      L ${centerX - legW} 205
+      L ${centerX - legW} 280
+      L ${centerX - legW + 8} 300
+      L ${centerX + legW - 8} 300
+      L ${centerX + legW} 280
+      L ${centerX + legW} 205
+      L ${centerX + waistW/2 + 5} 200
+      L ${centerX + waistW/2} 180
+      ${isFemale ? `L ${centerX + chestW/2} 140 C ${centerX + chestW/2 + 8} 135, ${centerX + chestW/2 + 8} 125, ${centerX + chestW/2} 120` : 'L ${centerX + chestW/2} 120'}
+      L ${centerX + shoulderW/2} 155
+      L ${centerX + shoulderW/2 + armW - 5} 160
+      L ${centerX + shoulderW/2 + armW} 140
+      L ${centerX + shoulderW/2 + armW} 85
+      L ${centerX + shoulderW/2} 80
+      Z
+    `;
+    
+    return { headPath, bodyPath };
+  }, [measurements, proportions, user?.gender]);
   
-  // Render enhanced anchor points
+  // Render anchor points
   const renderAnchorPoints = () => {
     if (!interactive) return null;
     
-    return anchorPoints.map((anchor, index) => {
+    return anchorPoints.map((anchor) => {
       const isActive = selectedAnchor === anchor.name;
-      const rotY = selectedAnchor ? rotation.y : 0;
-      const rotX = rotation.x;
-      
-      // Project anchor position to 2D
-      const anchor2D = project3DTo2D(anchor.position, rotX, rotY);
       
       return (
-        <Animated.View
+        <TouchableOpacity
           key={anchor.name}
           style={[
             styles.anchorPoint,
             {
-              left: anchor2D.x - 20,
-              top: anchor2D.y - 20,
+              left: anchor.x - 20,
+              top: anchor.y - 20,
               backgroundColor: anchor.color,
-              transform: [{ scale: isActive ? 1.3 : 1 }],
+              transform: [{ scale: isActive ? 1.2 : 1 }],
               shadowColor: anchor.color,
             }
           ]}
+          onPress={() => handleAnchorPress(anchor.name)}
+          activeOpacity={0.8}
         >
           <Text style={styles.anchorLabel}>{anchor.name.charAt(0).toUpperCase()}</Text>
           {isActive && <View style={styles.anchorPulse} />}
-        </Animated.View>
+        </TouchableOpacity>
       );
     });
   };
   
-  // Render enhanced slider for active anchor
+  // Render slider for active anchor
   const renderSlider = () => {
     if (!selectedAnchor) return null;
     
@@ -563,17 +267,24 @@ export default function HumanModel3D({
     if (!anchor) return null;
     
     const progress = (sliderValue - anchor.min) / (anchor.max - anchor.min);
+    const screenWidth = Dimensions.get('window').width;
     
     return (
       <View style={[
         styles.sliderContainer,
         {
-          left: Math.max(20, Math.min(Dimensions.get('window').width - 170, sliderPosition.x - 75)),
-          top: Math.max(20, sliderPosition.y),
+          left: Math.max(20, Math.min(screenWidth - 200, anchor.x - 90)),
+          top: anchor.y - 80,
           borderColor: anchor.color,
         }
       ]}>
-        <Text style={styles.sliderLabel}>{anchor.name}</Text>
+        <View style={styles.sliderHeader}>
+          <Text style={styles.sliderLabel}>{anchor.name}</Text>
+          <TouchableOpacity onPress={closeSlider} style={styles.closeButton}>
+            <Text style={styles.closeButtonText}>×</Text>
+          </TouchableOpacity>
+        </View>
+        
         <View style={styles.sliderTrack}>
           <View style={[
             styles.sliderProgress,
@@ -582,59 +293,93 @@ export default function HumanModel3D({
               backgroundColor: anchor.color,
             }
           ]} />
-          <View style={[
-            styles.sliderThumb,
-            { 
-              left: `${progress * 100}%`,
-              backgroundColor: anchor.color,
-            }
-          ]} />
         </View>
-        <Text style={styles.sliderValue}>{Math.round(sliderValue)}</Text>
+        
+        <View style={styles.sliderControls}>
+          <TouchableOpacity 
+            onPress={() => handleSliderChange(Math.max(anchor.min, sliderValue - 5))}
+            style={styles.sliderButton}
+          >
+            <Text style={styles.sliderButtonText}>-</Text>
+          </TouchableOpacity>
+          
+          <Text style={styles.sliderValue}>{Math.round(sliderValue)}</Text>
+          
+          <TouchableOpacity 
+            onPress={() => handleSliderChange(Math.min(anchor.max, sliderValue + 5))}
+            style={styles.sliderButton}
+          >
+            <Text style={styles.sliderButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
   
-  // Web fallback component
-  if (Platform.OS === 'web') {
-    return (
-      <View style={styles.fallbackContainer}>
-        <View style={styles.fallbackModel}>
-          <Text style={styles.fallbackTitle}>3D Body Model</Text>
-          <Text style={styles.fallbackSubtitle}>
-            {user?.gender === 'female' ? 'Female' : user?.gender === 'male' ? 'Male' : 'Human'} Model
-          </Text>
-          <Text style={styles.fallbackNote}>
-            Interactive 3D model available on mobile devices
-          </Text>
-          
-          <View style={styles.fallbackStats}>
-            <Text style={styles.fallbackStat}>Height: {user?.height || '--'} cm</Text>
-            <Text style={styles.fallbackStat}>Weight: {user?.weight || '--'} kg</Text>
-            {user?.bodyComposition?.bodyFat && (
-              <Text style={styles.fallbackStat}>Body Fat: {user.bodyComposition.bodyFat}%</Text>
-            )}
-            {user?.bodyComposition?.muscleMass && (
-              <Text style={styles.fallbackStat}>Muscle Mass: {user.bodyComposition.muscleMass}%</Text>
-            )}
-          </View>
-        </View>
-      </View>
-    );
-  }
-  
   return (
-    <View style={styles.container} {...panResponder.panHandlers}>
+    <View style={styles.container}>
       <View style={styles.modelContainer}>
-        {renderWireframeModel()}
+        <Svg width="300" height="320" viewBox="0 0 300 320">
+          {/* Body shadow/outline */}
+          <Path
+            d={generateBodyPath.bodyPath}
+            fill="rgba(100, 200, 255, 0.1)"
+            stroke="#64C8FF"
+            strokeWidth="2"
+            strokeDasharray="5,5"
+          />
+          
+          {/* Head shadow/outline */}
+          <Path
+            d={generateBodyPath.headPath}
+            fill="rgba(100, 200, 255, 0.1)"
+            stroke="#64C8FF"
+            strokeWidth="2"
+            strokeDasharray="5,5"
+          />
+          
+          {/* Body fill */}
+          <Path
+            d={generateBodyPath.bodyPath}
+            fill={user?.gender === 'female' ? 'rgba(255, 182, 193, 0.3)' : 'rgba(135, 206, 235, 0.3)'}
+            stroke={user?.gender === 'female' ? '#FFB6C1' : '#87CEEB'}
+            strokeWidth="1.5"
+          />
+          
+          {/* Head fill */}
+          <Path
+            d={generateBodyPath.headPath}
+            fill={user?.gender === 'female' ? 'rgba(255, 182, 193, 0.4)' : 'rgba(135, 206, 235, 0.4)'}
+            stroke={user?.gender === 'female' ? '#FFB6C1' : '#87CEEB'}
+            strokeWidth="1.5"
+          />
+          
+          {/* Measurement lines */}
+          {anchorPoints.map((anchor, index) => {
+            const nextAnchor = anchorPoints[index + 1];
+            if (!nextAnchor) return null;
+            
+            return (
+              <G key={`line-${anchor.name}`}>
+                <Path
+                  d={`M ${anchor.x} ${anchor.y} L ${nextAnchor.x} ${nextAnchor.y}`}
+                  stroke="rgba(100, 200, 255, 0.5)"
+                  strokeWidth="1"
+                  strokeDasharray="3,3"
+                />
+              </G>
+            );
+          })}
+        </Svg>
+        
         {renderAnchorPoints()}
         {renderSlider()}
       </View>
       
       <View style={styles.instructions}>
-        <Text style={styles.instructionText}>• Drag to rotate 360°</Text>
-        <Text style={styles.instructionText}>• Tap cyan points to adjust measurements</Text>
-        <Text style={styles.instructionText}>• Drag sliders to customize body proportions</Text>
+        <Text style={styles.instructionText}>• Tap colored points to adjust measurements</Text>
+        <Text style={styles.instructionText}>• Use +/- buttons to customize body proportions</Text>
+        <Text style={styles.instructionText}>• Model adapts to your gender and body composition</Text>
       </View>
     </View>
   );
@@ -646,40 +391,16 @@ const styles = StyleSheet.create({
     height: 450,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: Colors.dark.background,
     position: 'relative',
   },
   modelContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-  },
-  wireframeContainer: {
-    width: 400,
-    height: 400,
+    backgroundColor: 'rgba(10, 25, 40, 0.8)',
     position: 'relative',
   },
-  wireframeLine: {
-    position: 'absolute',
-    height: 2,
-    backgroundColor: '#00ffff',
-    shadowColor: '#00ffff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  gridLine: {
-    position: 'absolute',
-    height: 1,
-    backgroundColor: 'rgba(0, 255, 255, 0.3)',
-    shadowColor: '#00ffff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 2,
-  },
-
   anchorPoint: {
     position: 'absolute',
     width: 40,
@@ -688,20 +409,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#00ffff',
-    shadowColor: '#00ffff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 8,
-    elevation: 8,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
   anchorLabel: {
-    color: '#00ffff',
-    fontSize: 14,
+    color: '#ffffff',
+    fontSize: 12,
     fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
   },
   anchorPulse: {
     position: 'absolute',
@@ -709,138 +427,99 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: '#00ffff',
-    opacity: 0.6,
+    borderColor: '#ffffff',
+    opacity: 0.4,
   },
   sliderContainer: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 20, 40, 0.95)',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
     borderRadius: 16,
-    padding: 20,
-    minWidth: 160,
-    alignItems: 'center',
+    padding: 16,
+    minWidth: 180,
     zIndex: 10,
     borderWidth: 2,
-    borderColor: '#00ffff',
-    shadowColor: '#00ffff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
     elevation: 10,
   },
+  sliderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   sliderLabel: {
-    color: '#00ffff',
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 16,
     textTransform: 'capitalize',
-    textShadowColor: 'rgba(0, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+  },
+  closeButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   sliderTrack: {
-    width: 130,
-    height: 8,
-    backgroundColor: 'rgba(0, 255, 255, 0.2)',
-    borderRadius: 4,
-    marginBottom: 16,
+    width: '100%',
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 3,
+    marginBottom: 12,
     position: 'relative',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 255, 255, 0.4)',
   },
   sliderProgress: {
     height: '100%',
-    borderRadius: 4,
+    borderRadius: 3,
   },
-  sliderThumb: {
-    position: 'absolute',
-    top: -4,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    marginLeft: -8,
-    borderWidth: 2,
-    borderColor: '#00ffff',
-    shadowColor: '#00ffff',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 4,
+  sliderControls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
   },
-  sliderValue: {
-    color: '#00ffff',
+  sliderButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sliderButtonText: {
+    color: '#ffffff',
     fontSize: 18,
     fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+  },
+  sliderValue: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   instructions: {
     position: 'absolute',
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: 'rgba(0, 20, 40, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0, 255, 255, 0.3)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   instructionText: {
-    color: 'rgba(0, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.8)',
     fontSize: 13,
-    marginBottom: 6,
-    fontWeight: '500',
-  },
-  // Fallback styles for web
-  fallbackContainer: {
-    width: '100%',
-    height: 450,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#0a0a0a',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  fallbackModel: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: 'rgba(0, 20, 40, 0.8)',
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(0, 255, 255, 0.3)',
-  },
-  fallbackTitle: {
-    color: '#00ffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textShadowColor: 'rgba(0, 255, 255, 0.5)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
-  },
-  fallbackSubtitle: {
-    color: '#ffffff',
-    fontSize: 18,
-    marginBottom: 12,
-  },
-  fallbackNote: {
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 20,
-    fontStyle: 'italic',
-  },
-  fallbackStats: {
-    alignItems: 'center',
-  },
-  fallbackStat: {
-    color: 'rgba(0, 255, 255, 0.8)',
-    fontSize: 14,
     marginBottom: 4,
+    fontWeight: '400',
   },
 });
