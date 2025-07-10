@@ -1081,6 +1081,7 @@ export default function Human2DModel({
           <Text style={styles.instructionText}>• Tap colored anchor points to adjust body measurements</Text>
           <Text style={styles.instructionText}>• Enhanced muscle definition and body proportions</Text>
         </View>
+      </View>
     </View>
   );
 }
