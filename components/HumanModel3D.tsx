@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { View, StyleSheet, Platform, Text, PanResponder, Dimensions, Animated } from 'react-native';
 import Colors from '@/constants/colors';
 import { UserProfile } from '@/types/user';
@@ -88,7 +88,7 @@ export default function HumanModel3D({
   const [sliderPosition, setSliderPosition] = useState({ x: 0, y: 0 });
   const rotationAnim = useRef(new Animated.Value(0)).current;
   
-  const proportions = calculateProportions(user);
+  const proportions = useMemo(() => calculateProportions(user), [user]);
   
   // Initialize anchor points based on user proportions
   useEffect(() => {
