@@ -41,7 +41,7 @@ export default function GoalsScreen() {
         
         console.log('Fitness goal updated, navigating to body-composition...');
         
-        // Navigate to body composition page using replace
+        // Navigate to body composition page using replace to prevent navigation stack issues
         router.replace('/onboarding/body-composition');
         
       } catch (error) {
@@ -53,6 +53,7 @@ export default function GoalsScreen() {
   };
 
   const handleBack = () => {
+    // Use replace to go back to profile page
     router.replace('/onboarding/profile');
   };
 

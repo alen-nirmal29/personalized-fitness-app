@@ -52,6 +52,7 @@ export default function BodyModelScreen() {
       
       console.log('Current measurements updated, navigating to specific-goals...');
       
+      // Navigate to specific goals page using replace to prevent navigation stack issues
       router.replace('/onboarding/specific-goals');
       
     } catch (error) {
@@ -63,6 +64,7 @@ export default function BodyModelScreen() {
 
   const handleBack = () => {
     console.log('Body model back button pressed');
+    // Use replace to go back to body composition page
     router.replace('/onboarding/body-composition');
   };
 

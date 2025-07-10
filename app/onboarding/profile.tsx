@@ -74,7 +74,7 @@ export default function ProfileScreen() {
       
       console.log('Profile updated, navigating to goals page...');
       
-      // Navigate to goals page using replace to avoid back navigation issues
+      // Navigate to goals page using replace to prevent navigation stack issues
       router.replace('/onboarding/goals');
       
     } catch (error) {

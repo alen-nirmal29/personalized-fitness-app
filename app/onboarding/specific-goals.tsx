@@ -41,6 +41,7 @@ export default function SpecificGoalsScreen() {
         
         console.log('Onboarding completed, navigating to workout plan selection...');
         
+        // Navigate to workout plan selection using replace to prevent navigation stack issues
         router.replace('/workout/plan-selection');
         
       } catch (error) {
@@ -52,6 +53,7 @@ export default function SpecificGoalsScreen() {
   };
 
   const handleBack = () => {
+    // Use replace to go back to body model page
     router.replace('/onboarding/body-model');
   };
 

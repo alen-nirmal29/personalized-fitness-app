@@ -25,13 +25,11 @@ export default function WelcomeScreen() {
     // Only run this redirect logic on the root page
     if (pathname === '/' && isReady && isAuthenticated && user) {
       if (user.hasCompletedOnboarding) {
-        setTimeout(() => {
-          router.replace('/(tabs)');
-        }, 100);
+        // Use replace to avoid navigation stack issues
+        router.replace('/(tabs)');
       } else {
-        setTimeout(() => {
-          router.replace('/onboarding/profile');
-        }, 100);
+        // Use replace to avoid navigation stack issues
+        router.replace('/onboarding/profile');
       }
     }
   }, [isReady, isAuthenticated, user, pathname]);

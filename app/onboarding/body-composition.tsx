@@ -100,7 +100,7 @@ export default function BodyCompositionScreen() {
       
       console.log('Body composition updated, navigating immediately...');
       
-      // Navigate immediately without delay
+      // Navigate to body model page using replace to prevent navigation stack issues
       router.replace('/onboarding/body-model');
       
     } catch (error) {
@@ -113,6 +113,7 @@ export default function BodyCompositionScreen() {
 
   const handleBack = () => {
     console.log('Body composition back button pressed');
+    // Use replace to go back to goals page
     router.replace('/onboarding/goals');
   };
 
