@@ -42,6 +42,8 @@ export default function SignupScreen() {
   const handleSignup = async () => {
     if (validateForm()) {
       await signup(email, password, name);
+      // After signup, navigate to onboarding/profile
+      router.replace('/onboarding/profile');
     }
   };
 

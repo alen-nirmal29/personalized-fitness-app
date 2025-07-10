@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Dumbbell, Calendar, TrendingUp, Award } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -119,6 +119,15 @@ export default function HomeScreen() {
   const { currentPlan, setCurrentPlan } = useWorkoutStore();
   const { workoutStats, getTodayWorkouts } = useWorkoutSessionStore();
 
+  // Move setCurrentPlan to useEffect to avoid state update during render
+  useEffect(() => {
+    if (!currentPlan) {
+      const goalBasedWorkout = defaultWorkouts.find(w => w.specificGoal === user?.specificGoal);
+      const workout = goalBasedWorkout || defaultWorkouts[0];
+      setCurrentPlan(workout);
+    }
+  }, [currentPlan, user?.specificGoal, setCurrentPlan]);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good Morning';
@@ -150,19 +159,10 @@ export default function HomeScreen() {
     if (currentPlan && currentPlan.schedule.length > 0) {
       return currentPlan.schedule[0];
     }
-    
-    // Use default workout based on user's goal or first default
     const goalBasedWorkout = defaultWorkouts.find(w => w.specificGoal === user?.specificGoal);
     const workout = goalBasedWorkout || defaultWorkouts[0];
-    
-    // Set as current plan if none exists
-    if (!currentPlan) {
-      setCurrentPlan(workout);
-    }
-    
     return workout.schedule[0];
   };
-
   const todaysWorkout = getTodaysWorkout();
 
   const handleStartWorkout = () => {

@@ -47,19 +47,19 @@ export default function ProfileScreen() {
   };
 
   const handleNotifications = () => {
-    console.log('Notifications settings');
+    Alert.alert('Notifications', 'Here you can manage your notification preferences. (Feature coming soon)');
   };
 
   const handlePrivacy = () => {
-    console.log('Privacy settings');
+    Alert.alert('Privacy', 'Here you can control your data and privacy settings. (Feature coming soon)');
   };
 
   const handlePreferences = () => {
-    console.log('Preferences settings');
+    Alert.alert('Preferences', 'Here you can customize your app experience. (Feature coming soon)');
   };
 
   const handleHelp = () => {
-    console.log('Help & Support');
+    Alert.alert('Help & Support', 'Get help with using the app. (Feature coming soon)');
   };
 
   return (

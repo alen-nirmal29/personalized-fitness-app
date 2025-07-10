@@ -112,7 +112,7 @@ export default function BodyCompositionScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/onboarding/goals');
   };
 
   const pickImage = async () => {

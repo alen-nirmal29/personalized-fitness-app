@@ -52,7 +52,7 @@ export default function SpecificGoalsScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/onboarding/body-model');
   };
 
   return (

@@ -53,7 +53,7 @@ export default function GoalsScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/onboarding/profile');
   };
 
   const handleGoalSelect = (goal: FitnessGoal) => {

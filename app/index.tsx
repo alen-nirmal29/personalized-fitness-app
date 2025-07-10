@@ -7,10 +7,12 @@ import { Dumbbell } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
 import { useAuthStore } from '@/store/auth-store';
+import { usePathname } from 'expo-router';
 
 export default function WelcomeScreen() {
   const { isAuthenticated, user, isInitialized, isInOnboarding } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     // Wait for the auth store to be initialized (rehydrated from storage)
@@ -20,29 +22,19 @@ export default function WelcomeScreen() {
   }, [isInitialized]);
 
   useEffect(() => {
-    // Only check authentication after the store is ready
-    if (isReady && isAuthenticated && user) {
-      console.log('User authenticated:', user);
-      console.log('Has completed onboarding:', user.hasCompletedOnboarding);
-      console.log('Is in onboarding:', isInOnboarding);
-      
+    // Only run this redirect logic on the root page
+    if (pathname === '/' && isReady && isAuthenticated && user) {
       if (user.hasCompletedOnboarding) {
-        console.log('Navigating to tabs');
-        // Use setTimeout to ensure navigation happens after render
         setTimeout(() => {
           router.replace('/(tabs)');
         }, 100);
-      } else if (!isInOnboarding) {
-        console.log('Navigating to onboarding profile');
-        // Use setTimeout to ensure navigation happens after render
+      } else {
         setTimeout(() => {
           router.replace('/onboarding/profile');
         }, 100);
-      } else {
-        console.log('User is in onboarding flow, not redirecting');
       }
     }
-  }, [isReady, isAuthenticated, user, isInOnboarding]);
+  }, [isReady, isAuthenticated, user, pathname]);
 
   const handleGetStarted = () => {
     router.push('/auth/signup');
