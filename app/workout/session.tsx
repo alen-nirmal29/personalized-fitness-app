@@ -9,6 +9,46 @@ import ProgressBar from '@/components/ProgressBar';
 import { useWorkoutSessionStore } from '@/store/workout-session-store';
 import { useWorkoutStore } from '@/store/workout-store';
 
+// Default exercises if no workout plan exists
+const defaultExercises = [
+  {
+    id: 'ex-1',
+    name: 'Push-ups',
+    description: 'Standard push-ups for chest and triceps',
+    muscleGroup: 'chest',
+    sets: 3,
+    reps: 12,
+    restTime: 60,
+  },
+  {
+    id: 'ex-2',
+    name: 'Pull-ups',
+    description: 'Pull your body up to the bar',
+    muscleGroup: 'back',
+    sets: 3,
+    reps: 8,
+    restTime: 90,
+  },
+  {
+    id: 'ex-3',
+    name: 'Squats',
+    description: 'Bend knees and lower body, then rise',
+    muscleGroup: 'legs',
+    sets: 4,
+    reps: 12,
+    restTime: 90,
+  },
+  {
+    id: 'ex-4',
+    name: 'Plank',
+    description: 'Hold plank position for core strength',
+    muscleGroup: 'core',
+    sets: 3,
+    reps: 30,
+    restTime: 60,
+  }
+];
+
 export default function WorkoutSessionScreen() {
   const { workoutId } = useLocalSearchParams();
   const { currentPlan } = useWorkoutStore();
@@ -27,8 +67,22 @@ export default function WorkoutSessionScreen() {
   const [timer, setTimer] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
-  // Get today's workout (mock for now)
-  const todayWorkout = currentPlan?.schedule[0]; // First day for demo
+  // Get today's workout or use default
+  const getTodaysWorkout = () => {
+    if (currentPlan?.schedule && currentPlan.schedule.length > 0) {
+      return currentPlan.schedule[0];
+    }
+    
+    // Return default workout
+    return {
+      id: 'default-workout',
+      name: 'Full Body Workout',
+      exercises: defaultExercises,
+      restDay: false,
+    };
+  };
+
+  const todayWorkout = getTodaysWorkout();
 
   useEffect(() => {
     // Start workout if not already started

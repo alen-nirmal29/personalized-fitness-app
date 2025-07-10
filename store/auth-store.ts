@@ -100,12 +100,15 @@ export const useAuthStore = create<AuthStore>()(
             user: null,
             error: null,
             isLoading: false,
+            isInitialized: true, // Keep initialized true
           });
           
           console.log('Auth state cleared');
           
           // Clear persisted storage
           await AsyncStorage.removeItem('auth-storage');
+          await AsyncStorage.removeItem('workout-storage');
+          await AsyncStorage.removeItem('workout-session-storage');
           console.log('Storage cleared');
         } catch (error) {
           console.error('Logout error:', error);
@@ -115,6 +118,7 @@ export const useAuthStore = create<AuthStore>()(
             user: null,
             error: null,
             isLoading: false,
+            isInitialized: true,
           });
         }
       },

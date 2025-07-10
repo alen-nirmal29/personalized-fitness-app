@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Dumbbell } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -6,14 +6,15 @@ import Colors from '@/constants/colors';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
 import { useWorkoutSessionStore } from '@/store/workout-session-store';
+import { useWorkoutStore } from '@/store/workout-store';
 
 export default function WorkoutsScreen() {
   const { getTodayWorkouts } = useWorkoutSessionStore();
+  const { currentPlan } = useWorkoutStore();
   
   // Get current date
+  const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
-  const currentWeekStart = new Date(today);
-  currentWeekStart.setDate(today.getDate() - today.getDay() + 1); // Monday
   
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
@@ -23,36 +24,92 @@ export default function WorkoutsScreen() {
   };
   
   const formatWeekRange = () => {
+    const currentWeekStart = new Date(currentDate);
+    currentWeekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Monday
     const weekEnd = new Date(currentWeekStart);
     weekEnd.setDate(currentWeekStart.getDate() + 6);
     
-    return `${formatDate(currentWeekStart)} - ${formatDate(weekEnd)}, ${today.getFullYear()}`;
+    return `${formatDate(currentWeekStart)} - ${formatDate(weekEnd)}, ${currentDate.getFullYear()}`;
   };
 
   const handlePreviousWeek = () => {
-    console.log('Previous week');
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() - 7);
+    setCurrentDate(newDate);
   };
 
   const handleNextWeek = () => {
-    console.log('Next week');
+    const newDate = new Date(currentDate);
+    newDate.setDate(currentDate.getDate() + 7);
+    setCurrentDate(newDate);
   };
 
   const handleStartWorkout = () => {
     router.push('/workout/session');
   };
 
-  // Generate week days
-  const weekDays = [];
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(currentWeekStart);
-    date.setDate(currentWeekStart.getDate() + i);
-    weekDays.push(date);
-  }
+  // Generate week days based on current date
+  const getWeekDays = () => {
+    const weekDays = [];
+    const currentWeekStart = new Date(currentDate);
+    currentWeekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Monday
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(currentWeekStart);
+      date.setDate(currentWeekStart.getDate() + i);
+      weekDays.push(date);
+    }
+    return weekDays;
+  };
 
+  const weekDays = getWeekDays();
   const todayWorkouts = getTodayWorkouts();
+  
   const isToday = (date: Date) => {
     return date.toDateString() === today.toDateString();
   };
+
+  const getUpcomingWorkouts = () => {
+    const upcoming = [];
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
+    const dayAfterTomorrow = new Date(today);
+    dayAfterTomorrow.setDate(today.getDate() + 2);
+    
+    // Mock upcoming workouts based on current plan or defaults
+    if (currentPlan && currentPlan.schedule.length > 1) {
+      upcoming.push({
+        date: tomorrow,
+        workout: currentPlan.schedule[1] || currentPlan.schedule[0],
+        time: '10:00 AM'
+      });
+    } else {
+      upcoming.push({
+        date: tomorrow,
+        workout: {
+          name: 'Lower Body Strength',
+          description: 'Focus on legs and glutes with compound movements',
+          restDay: false
+        },
+        time: '10:00 AM'
+      });
+    }
+    
+    upcoming.push({
+      date: dayAfterTomorrow,
+      workout: {
+        name: 'Rest Day',
+        description: 'Take a day off to recover and let your muscles rebuild',
+        restDay: true
+      },
+      time: 'All Day'
+    });
+    
+    return upcoming;
+  };
+
+  const upcomingWorkouts = getUpcomingWorkouts();
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -163,47 +220,28 @@ export default function WorkoutsScreen() {
 
       <Text style={styles.sectionTitle}>Upcoming Workouts</Text>
 
-      <Card style={styles.upcomingCard}>
-        <View style={styles.upcomingHeader}>
-          <Text style={styles.upcomingDay}>
-            {weekDays[1]?.toLocaleDateString('en-US', { weekday: 'long' }) || 'Tuesday'}
-          </Text>
-          <Text style={styles.upcomingDate}>
-            {formatDate(weekDays[1] || new Date())}
-          </Text>
-        </View>
-        
-        <View style={styles.upcomingWorkout}>
-          <View style={styles.upcomingWorkoutHeader}>
-            <Text style={styles.upcomingWorkoutTitle}>Lower Body Strength</Text>
-            <Text style={styles.upcomingWorkoutTime}>10:00 AM</Text>
+      {upcomingWorkouts.map((item, index) => (
+        <Card key={index} style={styles.upcomingCard}>
+          <View style={styles.upcomingHeader}>
+            <Text style={styles.upcomingDay}>
+              {item.date.toLocaleDateString('en-US', { weekday: 'long' })}
+            </Text>
+            <Text style={styles.upcomingDate}>
+              {formatDate(item.date)}
+            </Text>
           </View>
-          <Text style={styles.upcomingWorkoutDescription}>
-            Focus on legs and glutes with compound movements
-          </Text>
-        </View>
-      </Card>
-
-      <Card style={styles.upcomingCard}>
-        <View style={styles.upcomingHeader}>
-          <Text style={styles.upcomingDay}>
-            {weekDays[2]?.toLocaleDateString('en-US', { weekday: 'long' }) || 'Wednesday'}
-          </Text>
-          <Text style={styles.upcomingDate}>
-            {formatDate(weekDays[2] || new Date())}
-          </Text>
-        </View>
-        
-        <View style={styles.upcomingWorkout}>
-          <View style={styles.upcomingWorkoutHeader}>
-            <Text style={styles.upcomingWorkoutTitle}>Rest Day</Text>
-            <Text style={styles.upcomingWorkoutTime}>All Day</Text>
+          
+          <View style={styles.upcomingWorkout}>
+            <View style={styles.upcomingWorkoutHeader}>
+              <Text style={styles.upcomingWorkoutTitle}>{item.workout.name}</Text>
+              <Text style={styles.upcomingWorkoutTime}>{item.time}</Text>
+            </View>
+            <Text style={styles.upcomingWorkoutDescription}>
+              {item.workout.description}
+            </Text>
           </View>
-          <Text style={styles.upcomingWorkoutDescription}>
-            Take a day off to recover and let your muscles rebuild
-          </Text>
-        </View>
-      </Card>
+        </Card>
+      ))}
     </ScrollView>
   );
 }

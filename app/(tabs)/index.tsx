@@ -11,9 +11,112 @@ import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
 import { useWorkoutSessionStore } from '@/store/workout-session-store';
 
+// Default workout plans if no current plan exists
+const defaultWorkouts = [
+  {
+    id: 'default-1',
+    name: 'Upper Body Strength',
+    description: 'Focus on chest, shoulders, and arms',
+    difficulty: 'intermediate' as const,
+    duration: '1_month' as const,
+    specificGoal: 'increase_strength' as const,
+    isAIGenerated: false,
+    schedule: [
+      {
+        id: 'day-1',
+        name: 'Upper Body Strength',
+        exercises: [
+          {
+            id: 'ex-1',
+            name: 'Push-ups',
+            description: 'Standard push-ups for chest and triceps',
+            muscleGroup: 'chest',
+            sets: 3,
+            reps: 12,
+            restTime: 60,
+          },
+          {
+            id: 'ex-2',
+            name: 'Pull-ups',
+            description: 'Pull your body up to the bar',
+            muscleGroup: 'back',
+            sets: 3,
+            reps: 8,
+            restTime: 90,
+          },
+          {
+            id: 'ex-3',
+            name: 'Shoulder Press',
+            description: 'Press weights overhead',
+            muscleGroup: 'shoulders',
+            sets: 3,
+            reps: 10,
+            restTime: 75,
+          },
+          {
+            id: 'ex-4',
+            name: 'Bicep Curls',
+            description: 'Curl weights to work biceps',
+            muscleGroup: 'arms',
+            sets: 3,
+            reps: 12,
+            restTime: 60,
+          }
+        ],
+        restDay: false,
+      }
+    ],
+  },
+  {
+    id: 'default-2',
+    name: 'Lower Body Power',
+    description: 'Focus on legs and glutes',
+    difficulty: 'intermediate' as const,
+    duration: '1_month' as const,
+    specificGoal: 'build_muscle' as const,
+    isAIGenerated: false,
+    schedule: [
+      {
+        id: 'day-2',
+        name: 'Lower Body Power',
+        exercises: [
+          {
+            id: 'ex-5',
+            name: 'Squats',
+            description: 'Bend knees and lower body, then rise',
+            muscleGroup: 'legs',
+            sets: 4,
+            reps: 12,
+            restTime: 90,
+          },
+          {
+            id: 'ex-6',
+            name: 'Lunges',
+            description: 'Step forward and lower body',
+            muscleGroup: 'legs',
+            sets: 3,
+            reps: 10,
+            restTime: 75,
+          },
+          {
+            id: 'ex-7',
+            name: 'Calf Raises',
+            description: 'Rise up on your toes',
+            muscleGroup: 'legs',
+            sets: 3,
+            reps: 15,
+            restTime: 45,
+          }
+        ],
+        restDay: false,
+      }
+    ],
+  }
+];
+
 export default function HomeScreen() {
   const { user } = useAuthStore();
-  const { currentPlan } = useWorkoutStore();
+  const { currentPlan, setCurrentPlan } = useWorkoutStore();
   const { workoutStats, getTodayWorkouts } = useWorkoutSessionStore();
 
   const getGreeting = () => {
@@ -42,8 +145,30 @@ export default function HomeScreen() {
     }
   };
 
+  // Get today's workout - use current plan or default workout
+  const getTodaysWorkout = () => {
+    if (currentPlan && currentPlan.schedule.length > 0) {
+      return currentPlan.schedule[0];
+    }
+    
+    // Use default workout based on user's goal or first default
+    const goalBasedWorkout = defaultWorkouts.find(w => w.specificGoal === user?.specificGoal);
+    const workout = goalBasedWorkout || defaultWorkouts[0];
+    
+    // Set as current plan if none exists
+    if (!currentPlan) {
+      setCurrentPlan(workout);
+    }
+    
+    return workout.schedule[0];
+  };
+
+  const todaysWorkout = getTodaysWorkout();
+
   const handleStartWorkout = () => {
-    router.push('/workout/session');
+    if (todaysWorkout && !todaysWorkout.restDay) {
+      router.push('/workout/session');
+    }
   };
 
   const handleCreateWorkoutPlan = () => {
@@ -55,7 +180,7 @@ export default function HomeScreen() {
   };
 
   // Calculate weekly progress based on real data
-  const weeklyProgress = workoutStats.weeklyWorkouts / 7; // Assuming 7 workouts per week goal
+  const weeklyProgress = Math.min(workoutStats.weeklyWorkouts / 7, 1); // Assuming 7 workouts per week goal
   const todayWorkouts = getTodayWorkouts();
 
   // Mock goal measurements for demonstration
@@ -85,7 +210,7 @@ export default function HomeScreen() {
         
         <View style={styles.progressSection}>
           <Text style={styles.progressTitle}>Weekly Progress</Text>
-          <ProgressBar progress={Math.min(weeklyProgress, 1)} showPercentage />
+          <ProgressBar progress={weeklyProgress} showPercentage />
         </View>
         
         <View style={styles.statsContainer}>
@@ -111,35 +236,35 @@ export default function HomeScreen() {
 
       <Text style={styles.sectionTitle}>Today's Workout</Text>
       
-      {currentPlan && currentPlan.schedule.length > 0 ? (
+      {todaysWorkout ? (
         <Card style={styles.workoutCard}>
           <View style={styles.workoutHeader}>
-            <Text style={styles.workoutTitle}>{currentPlan.schedule[0].name}</Text>
+            <Text style={styles.workoutTitle}>{todaysWorkout.name}</Text>
             <View style={styles.workoutBadge}>
               <Text style={styles.workoutBadgeText}>45 min</Text>
             </View>
           </View>
           
           <Text style={styles.workoutDescription}>
-            {currentPlan.schedule[0].restDay 
+            {todaysWorkout.restDay 
               ? 'Take a well-deserved rest day to recover'
-              : `${currentPlan.schedule[0].exercises.length} exercises planned for today`
+              : `${todaysWorkout.exercises.length} exercises planned for today`
             }
           </Text>
           
-          {!currentPlan.schedule[0].restDay && (
+          {!todaysWorkout.restDay && (
             <>
               <View style={styles.exerciseList}>
-                {currentPlan.schedule[0].exercises.slice(0, 3).map((exercise, index) => (
+                {todaysWorkout.exercises.slice(0, 3).map((exercise, index) => (
                   <View key={exercise.id} style={styles.exerciseItem}>
                     <Dumbbell size={16} color={Colors.dark.accent} />
                     <Text style={styles.exerciseName}>{exercise.name}</Text>
                     <Text style={styles.exerciseDetails}>{exercise.sets} × {exercise.reps}</Text>
                   </View>
                 ))}
-                {currentPlan.schedule[0].exercises.length > 3 && (
+                {todaysWorkout.exercises.length > 3 && (
                   <Text style={styles.moreExercises}>
-                    +{currentPlan.schedule[0].exercises.length - 3} more exercises
+                    +{todaysWorkout.exercises.length - 3} more exercises
                   </Text>
                 )}
               </View>
