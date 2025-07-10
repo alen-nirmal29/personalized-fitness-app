@@ -20,6 +20,17 @@ type AnchorPoint = {
   color: string;
 };
 
+type WireframePoint = {
+  x: number;
+  y: number;
+  z: number;
+};
+
+type WireframeLine = {
+  start: WireframePoint;
+  end: WireframePoint;
+};
+
 // Calculate realistic proportions based on user data
 function calculateProportions(user?: UserProfile | null) {
   if (!user) {
@@ -216,162 +227,287 @@ export default function HumanModel3D({
     },
   });
 
-  // Create an enhanced 3D-like human model
-  const renderHumanModel = () => {
-    const scale = 1.2;
-    const autoRotation = rotationAnim.interpolate({
-      inputRange: [0, 1],
-      outputRange: ['0deg', '360deg'],
-    });
-    
-    const rotationStyle = {
-      transform: [
-        { perspective: 1000 },
-        { rotateX: `${rotation.x * 57.3}deg` },
-        { rotateY: selectedAnchor ? `${rotation.y * 57.3}deg` : autoRotation },
-        { scale },
-      ],
-    };
-    
+  // Generate wireframe points for human body
+  const generateWireframePoints = () => {
     // Get measurements from anchor points
     const measurements = anchorPoints.reduce((acc, point) => {
       acc[point.name] = point.value;
       return acc;
     }, {} as Record<string, number>);
     
-    const shoulderWidth = 80 * (measurements.shoulders / 50);
-    const chestWidth = 70 * (measurements.chest / 50);
-    const armWidth = 18 * (measurements.arms / 50);
-    const waistWidth = 60 * (measurements.waist / 50);
-    const legWidth = 25 * (measurements.legs / 50);
+    const shoulderWidth = 0.8 * (measurements.shoulders / 50);
+    const chestWidth = 0.7 * (measurements.chest / 50);
+    const armWidth = 0.15 * (measurements.arms / 50);
+    const waistWidth = 0.6 * (measurements.waist / 50);
+    const legWidth = 0.2 * (measurements.legs / 50);
     
-    // Enhanced skin tone based on user preferences
-    const skinTone = user?.gender === 'female' ? '#FDBCB4' : '#E8B4A0';
+    const isFemale = user?.gender === 'female';
+    
+    // Define key body points for wireframe
+    const points: Record<string, WireframePoint> = {
+      // Head
+      headTop: { x: 0, y: 1.8, z: 0 },
+      headFront: { x: 0, y: 1.65, z: 0.1 },
+      headBack: { x: 0, y: 1.65, z: -0.1 },
+      headLeft: { x: -0.1, y: 1.65, z: 0 },
+      headRight: { x: 0.1, y: 1.65, z: 0 },
+      headBottom: { x: 0, y: 1.5, z: 0 },
+      
+      // Neck
+      neckTop: { x: 0, y: 1.5, z: 0 },
+      neckBottom: { x: 0, y: 1.4, z: 0 },
+      
+      // Shoulders
+      shoulderLeft: { x: -shoulderWidth, y: 1.4, z: 0 },
+      shoulderRight: { x: shoulderWidth, y: 1.4, z: 0 },
+      shoulderCenter: { x: 0, y: 1.4, z: 0 },
+      
+      // Arms
+      elbowLeft: { x: -shoulderWidth - 0.1, y: 1.1, z: 0 },
+      elbowRight: { x: shoulderWidth + 0.1, y: 1.1, z: 0 },
+      wristLeft: { x: -shoulderWidth - 0.1, y: 0.8, z: 0 },
+      wristRight: { x: shoulderWidth + 0.1, y: 0.8, z: 0 },
+      
+      // Chest/Torso
+      chestLeft: { x: -chestWidth, y: 1.2, z: 0 },
+      chestRight: { x: chestWidth, y: 1.2, z: 0 },
+      chestCenter: { x: 0, y: 1.2, z: 0 },
+      chestFront: { x: 0, y: 1.2, z: isFemale ? 0.15 : 0.1 },
+      
+      // Waist
+      waistLeft: { x: -waistWidth, y: 0.9, z: 0 },
+      waistRight: { x: waistWidth, y: 0.9, z: 0 },
+      waistCenter: { x: 0, y: 0.9, z: 0 },
+      
+      // Hips
+      hipLeft: { x: -waistWidth * 1.2, y: 0.7, z: 0 },
+      hipRight: { x: waistWidth * 1.2, y: 0.7, z: 0 },
+      hipCenter: { x: 0, y: 0.7, z: 0 },
+      
+      // Legs
+      kneeLeft: { x: -legWidth, y: 0.4, z: 0 },
+      kneeRight: { x: legWidth, y: 0.4, z: 0 },
+      ankleLeft: { x: -legWidth, y: 0.1, z: 0 },
+      ankleRight: { x: legWidth, y: 0.1, z: 0 },
+      footLeft: { x: -legWidth, y: 0, z: 0.1 },
+      footRight: { x: legWidth, y: 0, z: 0.1 },
+    };
+    
+    return points;
+  };
+  
+  // Generate wireframe lines connecting the points
+  const generateWireframeLines = (points: Record<string, WireframePoint>): WireframeLine[] => {
+    return [
+      // Head wireframe
+      { start: points.headTop, end: points.headFront },
+      { start: points.headTop, end: points.headBack },
+      { start: points.headTop, end: points.headLeft },
+      { start: points.headTop, end: points.headRight },
+      { start: points.headFront, end: points.headLeft },
+      { start: points.headLeft, end: points.headBack },
+      { start: points.headBack, end: points.headRight },
+      { start: points.headRight, end: points.headFront },
+      { start: points.headBottom, end: points.headFront },
+      { start: points.headBottom, end: points.headBack },
+      { start: points.headBottom, end: points.headLeft },
+      { start: points.headBottom, end: points.headRight },
+      
+      // Neck
+      { start: points.headBottom, end: points.neckTop },
+      { start: points.neckTop, end: points.neckBottom },
+      
+      // Shoulders
+      { start: points.neckBottom, end: points.shoulderCenter },
+      { start: points.shoulderLeft, end: points.shoulderRight },
+      { start: points.shoulderLeft, end: points.shoulderCenter },
+      { start: points.shoulderRight, end: points.shoulderCenter },
+      
+      // Arms
+      { start: points.shoulderLeft, end: points.elbowLeft },
+      { start: points.shoulderRight, end: points.elbowRight },
+      { start: points.elbowLeft, end: points.wristLeft },
+      { start: points.elbowRight, end: points.wristRight },
+      
+      // Chest/Torso
+      { start: points.shoulderLeft, end: points.chestLeft },
+      { start: points.shoulderRight, end: points.chestRight },
+      { start: points.chestLeft, end: points.chestRight },
+      { start: points.chestCenter, end: points.chestFront },
+      { start: points.chestLeft, end: points.chestCenter },
+      { start: points.chestRight, end: points.chestCenter },
+      
+      // Torso to waist
+      { start: points.chestLeft, end: points.waistLeft },
+      { start: points.chestRight, end: points.waistRight },
+      { start: points.chestCenter, end: points.waistCenter },
+      { start: points.waistLeft, end: points.waistRight },
+      { start: points.waistLeft, end: points.waistCenter },
+      { start: points.waistRight, end: points.waistCenter },
+      
+      // Waist to hips
+      { start: points.waistLeft, end: points.hipLeft },
+      { start: points.waistRight, end: points.hipRight },
+      { start: points.waistCenter, end: points.hipCenter },
+      { start: points.hipLeft, end: points.hipRight },
+      { start: points.hipLeft, end: points.hipCenter },
+      { start: points.hipRight, end: points.hipCenter },
+      
+      // Legs
+      { start: points.hipLeft, end: points.kneeLeft },
+      { start: points.hipRight, end: points.kneeRight },
+      { start: points.kneeLeft, end: points.ankleLeft },
+      { start: points.kneeRight, end: points.ankleRight },
+      { start: points.ankleLeft, end: points.footLeft },
+      { start: points.ankleRight, end: points.footRight },
+      
+      // Cross connections for 3D effect
+      { start: points.chestFront, end: points.chestLeft },
+      { start: points.chestFront, end: points.chestRight },
+    ];
+  };
+  
+  // Project 3D point to 2D screen coordinates
+  const project3DTo2D = (point: WireframePoint, rotX: number, rotY: number): { x: number; y: number } => {
+    // Apply rotation transformations
+    const cosX = Math.cos(rotX);
+    const sinX = Math.sin(rotX);
+    const cosY = Math.cos(rotY);
+    const sinY = Math.sin(rotY);
+    
+    // Rotate around Y axis (horizontal rotation)
+    let x = point.x * cosY - point.z * sinY;
+    let z = point.x * sinY + point.z * cosY;
+    let y = point.y;
+    
+    // Rotate around X axis (vertical rotation)
+    const newY = y * cosX - z * sinX;
+    z = y * sinX + z * cosX;
+    y = newY;
+    
+    // Project to 2D with perspective
+    const distance = 3;
+    const scale = distance / (distance + z);
+    
+    return {
+      x: x * scale * 120 + 200, // Scale and center
+      y: -y * scale * 120 + 220, // Flip Y and center
+    };
+  };
+  
+  // Render wireframe human model
+  const renderWireframeModel = () => {
+    const autoRotation = rotationAnim.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, Math.PI * 2],
+    });
+    
+    const points = generateWireframePoints();
+    const lines = generateWireframeLines(points);
     
     return (
-      <Animated.View style={[styles.humanModel, rotationStyle]}>
-        {/* Enhanced Head with facial features */}
-        <View style={[
-          styles.head,
-          {
-            width: 50,
-            height: 50,
-            borderRadius: 25,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.face}>
-            <View style={[styles.eye, styles.leftEye]} />
-            <View style={[styles.eye, styles.rightEye]} />
-            <View style={styles.mouth} />
-          </View>
-        </View>
+      <Animated.View style={styles.wireframeContainer}>
+        {lines.map((line, index) => {
+          const rotY = selectedAnchor ? rotation.y : autoRotation;
+          const rotX = rotation.x;
+          
+          const start2D = project3DTo2D(line.start, rotX, rotY);
+          const end2D = project3DTo2D(line.end, rotX, rotY);
+          
+          const length = Math.sqrt(
+            Math.pow(end2D.x - start2D.x, 2) + Math.pow(end2D.y - start2D.y, 2)
+          );
+          const angle = Math.atan2(end2D.y - start2D.y, end2D.x - start2D.x) * 180 / Math.PI;
+          
+          return (
+            <View
+              key={index}
+              style={[
+                styles.wireframeLine,
+                {
+                  left: start2D.x,
+                  top: start2D.y,
+                  width: length,
+                  transform: [{ rotate: `${angle}deg` }],
+                },
+              ]}
+            />
+          );
+        })}
         
-        {/* Hair */}
-        <View style={[
-          styles.hair,
-          {
-            backgroundColor: user?.gender === 'female' ? '#8B4513' : '#654321',
-          }
-        ]} />
-        
-        {/* Neck */}
-        <View style={[
-          styles.neck,
-          {
-            width: 14,
-            height: 18,
-            backgroundColor: skinTone,
-          }
-        ]} />
-        
-        {/* Enhanced Shoulders with muscle definition */}
-        <View style={[
-          styles.shoulders,
-          {
-            width: shoulderWidth,
-            height: 14,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.shoulderMuscle} />
-        </View>
-        
-        {/* Enhanced Arms with muscle definition */}
-        <View style={[
-          styles.leftArm,
-          {
-            width: armWidth,
-            height: 75,
-            left: -shoulderWidth/2 - armWidth/2,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.armMuscle} />
-        </View>
-        <View style={[
-          styles.rightArm,
-          {
-            width: armWidth,
-            height: 75,
-            right: -shoulderWidth/2 - armWidth/2,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.armMuscle} />
-        </View>
-        
-        {/* Enhanced Chest/Torso with abs */}
-        <View style={[
-          styles.chest,
-          {
-            width: chestWidth,
-            height: 85,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.chestMuscle} />
-          <View style={styles.abs} />
-        </View>
-        
-        {/* Enhanced Waist */}
-        <View style={[
-          styles.waist,
-          {
-            width: waistWidth,
-            height: 28,
-            backgroundColor: skinTone,
-          }
-        ]} />
-        
-        {/* Enhanced Legs with muscle definition */}
-        <View style={[
-          styles.leftLeg,
-          {
-            width: legWidth,
-            height: 95,
-            left: -waistWidth/4,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.legMuscle} />
-        </View>
-        <View style={[
-          styles.rightLeg,
-          {
-            width: legWidth,
-            height: 95,
-            right: -waistWidth/4,
-            backgroundColor: skinTone,
-          }
-        ]}>
-          <View style={styles.legMuscle} />
-        </View>
-        
-        {/* Enhanced shadow for 3D effect */}
-        <View style={styles.shadow} />
+        {/* Render grid pattern overlay */}
+        {renderGridPattern(points)}
       </Animated.View>
     );
+  };
+  
+  // Render grid pattern on the model
+  const renderGridPattern = (points: Record<string, WireframePoint>) => {
+    const gridLines = [];
+    const rotY = selectedAnchor ? rotation.y : 0;
+    const rotX = rotation.x;
+    
+    // Horizontal grid lines
+    for (let i = 0; i < 20; i++) {
+      const y = 0.1 + (i * 0.09);
+      const startPoint = { x: -0.8, y, z: 0 };
+      const endPoint = { x: 0.8, y, z: 0 };
+      
+      const start2D = project3DTo2D(startPoint, rotX, rotY);
+      const end2D = project3DTo2D(endPoint, rotX, rotY);
+      
+      const length = Math.sqrt(
+        Math.pow(end2D.x - start2D.x, 2) + Math.pow(end2D.y - start2D.y, 2)
+      );
+      const angle = Math.atan2(end2D.y - start2D.y, end2D.x - start2D.x) * 180 / Math.PI;
+      
+      gridLines.push(
+        <View
+          key={`h-${i}`}
+          style={[
+            styles.gridLine,
+            {
+              left: start2D.x,
+              top: start2D.y,
+              width: length,
+              transform: [{ rotate: `${angle}deg` }],
+            },
+          ]}
+        />
+      );
+    }
+    
+    // Vertical grid lines
+    for (let i = 0; i < 16; i++) {
+      const x = -0.8 + (i * 0.1);
+      const startPoint = { x, y: 0, z: 0 };
+      const endPoint = { x, y: 1.8, z: 0 };
+      
+      const start2D = project3DTo2D(startPoint, rotX, rotY);
+      const end2D = project3DTo2D(endPoint, rotX, rotY);
+      
+      const length = Math.sqrt(
+        Math.pow(end2D.x - start2D.x, 2) + Math.pow(end2D.y - start2D.y, 2)
+      );
+      const angle = Math.atan2(end2D.y - start2D.y, end2D.x - start2D.x) * 180 / Math.PI;
+      
+      gridLines.push(
+        <View
+          key={`v-${i}`}
+          style={[
+            styles.gridLine,
+            {
+              left: start2D.x,
+              top: start2D.y,
+              width: length,
+              transform: [{ rotate: `${angle}deg` }],
+            },
+          ]}
+        />
+      );
+    }
+    
+    return gridLines;
   };
   
   // Render enhanced anchor points
@@ -380,8 +516,11 @@ export default function HumanModel3D({
     
     return anchorPoints.map((anchor, index) => {
       const isActive = selectedAnchor === anchor.name;
-      const screenX = 200 + anchor.position.x * 100;
-      const screenY = 200 - anchor.position.y * 100;
+      const rotY = selectedAnchor ? rotation.y : 0;
+      const rotX = rotation.x;
+      
+      // Project anchor position to 2D
+      const anchor2D = project3DTo2D(anchor.position, rotX, rotY);
       
       return (
         <Animated.View
@@ -389,8 +528,8 @@ export default function HumanModel3D({
           style={[
             styles.anchorPoint,
             {
-              left: screenX - 20,
-              top: screenY - 20,
+              left: anchor2D.x - 20,
+              top: anchor2D.y - 20,
               backgroundColor: anchor.color,
               transform: [{ scale: isActive ? 1.3 : 1 }],
               shadowColor: anchor.color,
@@ -475,15 +614,15 @@ export default function HumanModel3D({
   return (
     <View style={styles.container} {...panResponder.panHandlers}>
       <View style={styles.modelContainer}>
-        {renderHumanModel()}
+        {renderWireframeModel()}
         {renderAnchorPoints()}
         {renderSlider()}
       </View>
       
       <View style={styles.instructions}>
         <Text style={styles.instructionText}>• Drag to rotate 360°</Text>
-        <Text style={styles.instructionText}>• Tap colored points to adjust size</Text>
-        <Text style={styles.instructionText}>• Drag sliders to customize proportions</Text>
+        <Text style={styles.instructionText}>• Tap cyan points to adjust measurements</Text>
+        <Text style={styles.instructionText}>• Drag sliders to customize body proportions</Text>
       </View>
     </View>
   );
@@ -495,229 +634,40 @@ const styles = StyleSheet.create({
     height: 450,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: Colors.dark.card,
+    backgroundColor: '#0a0a0a',
     position: 'relative',
   },
   modelContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(59, 95, 227, 0.08)',
+    backgroundColor: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
   },
-  humanModel: {
-    width: 200,
-    height: 340,
-    alignItems: 'center',
+  wireframeContainer: {
+    width: 400,
+    height: 400,
     position: 'relative',
   },
-  head: {
+  wireframeLine: {
     position: 'absolute',
-    top: 0,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
-  },
-  face: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  eye: {
-    width: 4,
-    height: 4,
-    backgroundColor: '#333',
-    borderRadius: 2,
-    position: 'absolute',
-  },
-  leftEye: {
-    left: 12,
-    top: 15,
-  },
-  rightEye: {
-    right: 12,
-    top: 15,
-  },
-  mouth: {
-    width: 8,
     height: 2,
-    backgroundColor: '#D2691E',
-    borderRadius: 1,
-    position: 'absolute',
-    bottom: 12,
-  },
-  hair: {
-    position: 'absolute',
-    top: -5,
-    width: 55,
-    height: 25,
-    borderTopLeftRadius: 27,
-    borderTopRightRadius: 27,
-    shadowColor: '#000',
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.3,
+    backgroundColor: '#00ffff',
+    shadowColor: '#00ffff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
     shadowRadius: 3,
-    elevation: 3,
+    elevation: 5,
   },
-  neck: {
+  gridLine: {
     position: 'absolute',
-    top: 45,
-    borderRadius: 7,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  shoulders: {
-    position: 'absolute',
-    top: 63,
-    borderRadius: 7,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
+    height: 1,
+    backgroundColor: 'rgba(0, 255, 255, 0.3)',
+    shadowColor: '#00ffff',
+    shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-    overflow: 'hidden',
+    shadowRadius: 2,
   },
-  shoulderMuscle: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    right: 2,
-    height: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderRadius: 2,
-  },
-  chest: {
-    position: 'absolute',
-    top: 77,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
-    shadowColor: '#000',
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 6,
-    overflow: 'hidden',
-  },
-  chestMuscle: {
-    position: 'absolute',
-    top: 8,
-    left: 8,
-    right: 8,
-    height: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-    borderRadius: 6,
-  },
-  abs: {
-    position: 'absolute',
-    bottom: 8,
-    left: '25%',
-    right: '25%',
-    height: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.06)',
-    borderRadius: 4,
-  },
-  leftArm: {
-    position: 'absolute',
-    top: 85,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  rightArm: {
-    position: 'absolute',
-    top: 85,
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  armMuscle: {
-    position: 'absolute',
-    top: 8,
-    left: 2,
-    right: 2,
-    height: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-    borderRadius: 4,
-  },
-  waist: {
-    position: 'absolute',
-    top: 162,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  leftLeg: {
-    position: 'absolute',
-    top: 190,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  rightLeg: {
-    position: 'absolute',
-    top: 190,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    shadowColor: '#000',
-    shadowOffset: { width: 3, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 4,
-    overflow: 'hidden',
-  },
-  legMuscle: {
-    position: 'absolute',
-    top: 8,
-    left: 2,
-    right: 2,
-    height: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.08)',
-    borderRadius: 6,
-  },
-  shadow: {
-    position: 'absolute',
-    bottom: -8,
-    left: 15,
-    right: 15,
-    height: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 50,
-    opacity: 0.7,
-  },
+
   anchorPoint: {
     position: 'absolute',
     width: 40,
@@ -725,20 +675,21 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
-    borderColor: 'rgba(255, 255, 255, 0.6)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
+    borderWidth: 2,
+    borderColor: '#00ffff',
+    shadowColor: '#00ffff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
     shadowRadius: 8,
     elevation: 8,
   },
   anchorLabel: {
-    color: '#fff',
+    color: '#00ffff',
     fontSize: 14,
     fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    textShadowColor: 'rgba(0, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   anchorPulse: {
     position: 'absolute',
@@ -746,38 +697,44 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.5)',
-    opacity: 0.7,
+    borderColor: '#00ffff',
+    opacity: 0.6,
   },
   sliderContainer: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    backgroundColor: 'rgba(0, 20, 40, 0.95)',
     borderRadius: 16,
     padding: 20,
     minWidth: 160,
     alignItems: 'center',
     zIndex: 10,
     borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
+    borderColor: '#00ffff',
+    shadowColor: '#00ffff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
     shadowRadius: 12,
     elevation: 10,
   },
   sliderLabel: {
-    color: Colors.dark.text,
+    color: '#00ffff',
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 16,
     textTransform: 'capitalize',
+    textShadowColor: 'rgba(0, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   sliderTrack: {
     width: 130,
     height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(0, 255, 255, 0.2)',
     borderRadius: 4,
     marginBottom: 16,
     position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 255, 0.4)',
   },
   sliderProgress: {
     height: '100%',
@@ -791,29 +748,34 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginLeft: -8,
     borderWidth: 2,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
+    borderColor: '#00ffff',
+    shadowColor: '#00ffff',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
     shadowRadius: 4,
     elevation: 4,
   },
   sliderValue: {
-    color: Colors.dark.text,
+    color: '#00ffff',
     fontSize: 18,
     fontWeight: 'bold',
+    textShadowColor: 'rgba(0, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   instructions: {
     position: 'absolute',
     bottom: 16,
     left: 16,
     right: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backgroundColor: 'rgba(0, 20, 40, 0.9)',
     borderRadius: 12,
     padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 255, 0.3)',
   },
   instructionText: {
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: 'rgba(0, 255, 255, 0.8)',
     fontSize: 13,
     marginBottom: 6,
     fontWeight: '500',
@@ -824,7 +786,7 @@ const styles = StyleSheet.create({
     height: 450,
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: 'rgba(59, 95, 227, 0.1)',
+    backgroundColor: '#0a0a0a',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -832,25 +794,30 @@ const styles = StyleSheet.create({
   fallbackModel: {
     width: '100%',
     height: '100%',
-    backgroundColor: 'rgba(59, 95, 227, 0.2)',
+    backgroundColor: 'rgba(0, 20, 40, 0.8)',
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 255, 255, 0.3)',
   },
   fallbackTitle: {
-    color: Colors.dark.accent,
+    color: '#00ffff',
     fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 12,
+    textShadowColor: 'rgba(0, 255, 255, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 4,
   },
   fallbackSubtitle: {
-    color: Colors.dark.text,
+    color: '#ffffff',
     fontSize: 18,
     marginBottom: 12,
   },
   fallbackNote: {
-    color: Colors.dark.subtext,
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 20,
@@ -860,7 +827,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   fallbackStat: {
-    color: Colors.dark.subtext,
+    color: 'rgba(0, 255, 255, 0.8)',
     fontSize: 14,
     marginBottom: 4,
   },
