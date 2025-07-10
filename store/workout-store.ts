@@ -470,7 +470,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           set({
             currentPlan: fallbackPlan,
             isLoading: false,
-            error: null // Clear error since we have a fallback
+            error: 'AI generation failed, using fallback plan' // Show user that fallback was used
           });
         }
       },
@@ -576,8 +576,43 @@ export const useWorkoutStore = create<WorkoutStore>()(
           });
         } catch (error) {
           console.error('Error getting recommendations:', error);
+          // Provide fallback recommendations
+          const fallbackPlans: WorkoutPlan[] = [
+            {
+              id: 'plan-1',
+              name: '30-Day Foundation',
+              description: 'Perfect starter plan for your fitness goals',
+              difficulty: 'beginner' as WorkoutDifficulty,
+              duration: '1_month' as WorkoutDuration,
+              specificGoal,
+              isAIGenerated: false,
+              schedule: [],
+            },
+            {
+              id: 'plan-2',
+              name: '90-Day Progressive',
+              description: 'Intermediate plan with progressive training',
+              difficulty: 'intermediate' as WorkoutDifficulty,
+              duration: '3_month' as WorkoutDuration,
+              specificGoal,
+              isAIGenerated: false,
+              schedule: [],
+            },
+            {
+              id: 'plan-3',
+              name: '6-Month Transformation',
+              description: 'Advanced comprehensive transformation program',
+              difficulty: 'advanced' as WorkoutDifficulty,
+              duration: '6_month' as WorkoutDuration,
+              specificGoal,
+              isAIGenerated: false,
+              schedule: [],
+            },
+          ];
+          
           set({
-            error: 'Failed to fetch recommended plans',
+            recommendedPlans: fallbackPlans,
+            error: 'AI recommendations unavailable, showing default plans',
             isLoading: false,
           });
         }

@@ -114,53 +114,62 @@ export default function Human2DModel({
     }
   }, []);
 
-  const anchorPoints: AnchorPoint[] = useMemo(() => [
-    {
-      name: 'shoulders',
-      x: centerX,
-      y: 85,
-      value: measurements.shoulders,
-      min: 20,
-      max: 80,
-      color: '#FF6B6B',
-    },
-    {
-      name: 'chest',
-      x: centerX,
-      y: 120,
-      value: measurements.chest,
-      min: 20,
-      max: 80,
-      color: '#4ECDC4',
-    },
-    {
-      name: 'arms',
-      x: centerX + 60,
-      y: 120,
-      value: measurements.arms,
-      min: 20,
-      max: 80,
-      color: '#45B7D1',
-    },
-    {
-      name: 'waist',
-      x: centerX,
-      y: 160,
-      value: measurements.waist,
-      min: 20,
-      max: 80,
-      color: '#F9CA24',
-    },
-    {
-      name: 'legs',
-      x: centerX,
-      y: 220,
-      value: measurements.legs,
-      min: 20,
-      max: 80,
-      color: '#6C5CE7',
-    },
-  ], [measurements, centerX]);
+  const anchorPoints: AnchorPoint[] = useMemo(() => {
+    // Calculate dynamic positions based on body proportions
+    const shoulderEdgeX = centerX + bodyProps.shoulderW - 15;
+    const chestEdgeX = centerX + bodyProps.chestW - 10;
+    const armX = centerX + bodyProps.shoulderW + bodyProps.armW + 10;
+    const waistEdgeX = centerX + bodyProps.waistW - 10;
+    const legX = centerX + bodyProps.legW + 5;
+    
+    return [
+      {
+        name: 'shoulders',
+        x: shoulderEdgeX, // Position on the actual shoulder edge
+        y: 85,
+        value: measurements.shoulders,
+        min: 20,
+        max: 80,
+        color: '#FF6B6B',
+      },
+      {
+        name: 'chest',
+        x: chestEdgeX, // Position on the chest edge
+        y: 110,
+        value: measurements.chest,
+        min: 20,
+        max: 80,
+        color: '#4ECDC4',
+      },
+      {
+        name: 'arms',
+        x: armX, // Position on the actual arm
+        y: 130,
+        value: measurements.arms,
+        min: 20,
+        max: 80,
+        color: '#45B7D1',
+      },
+      {
+        name: 'waist',
+        x: waistEdgeX, // Position on the waist edge
+        y: 160,
+        value: measurements.waist,
+        min: 20,
+        max: 80,
+        color: '#F9CA24',
+      },
+      {
+        name: 'legs',
+        x: legX, // Position on the actual leg
+        y: 210,
+        value: measurements.legs,
+        min: 20,
+        max: 80,
+        color: '#6C5CE7',
+      },
+    ];
+  }, [measurements, centerX, bodyProps]);
 
   const handleAnchorPress = useCallback((anchorName: string) => {
     if (!interactive) return;
@@ -287,30 +296,105 @@ export default function Human2DModel({
       legW: (goalMeasurements.legs / 50) * (isFemale ? 15 : 20),
     };
     
+    const goalCenterX = centerX + 100; // Position goal body to the right
+    
     return (
-      <G opacity={0.4}>
-        {/* Goal body outline */}
+      <G opacity={0.6}>
+        {/* Goal body outline - simplified but complete */}
+        
+        {/* Head */}
         <Ellipse
-          cx={centerX + 80}
+          cx={goalCenterX}
+          cy={45}
+          rx={18}
+          ry={22}
+          fill="none"
+          stroke={Colors.dark.accent}
+          strokeWidth="2"
+          strokeDasharray="3,3"
+        />
+        
+        {/* Shoulders */}
+        <Ellipse
+          cx={goalCenterX}
+          cy={85}
+          rx={goalProps.shoulderW}
+          ry={6}
+          fill="none"
+          stroke={Colors.dark.accent}
+          strokeWidth="2"
+          strokeDasharray="3,3"
+        />
+        
+        {/* Chest */}
+        <Ellipse
+          cx={goalCenterX}
           cy={110}
           rx={goalProps.chestW}
           ry={25}
           fill="none"
           stroke={Colors.dark.accent}
           strokeWidth="2"
-          strokeDasharray="5,5"
+          strokeDasharray="3,3"
         />
+        
+        {/* Waist */}
         <Ellipse
-          cx={centerX + 80}
+          cx={goalCenterX}
           cy={160}
           rx={goalProps.waistW}
           ry={20}
           fill="none"
           stroke={Colors.dark.accent}
           strokeWidth="2"
-          strokeDasharray="5,5"
+          strokeDasharray="3,3"
         />
-        <Text x={centerX + 80} y={280} textAnchor="middle" fill={Colors.dark.accent} fontSize="12">
+        
+        {/* Arms */}
+        <Ellipse
+          cx={goalCenterX - goalProps.shoulderW - 8}
+          cy={130}
+          rx={goalProps.armW / 2}
+          ry={20}
+          fill="none"
+          stroke={Colors.dark.accent}
+          strokeWidth="2"
+          strokeDasharray="3,3"
+        />
+        <Ellipse
+          cx={goalCenterX + goalProps.shoulderW + 8}
+          cy={130}
+          rx={goalProps.armW / 2}
+          ry={20}
+          fill="none"
+          stroke={Colors.dark.accent}
+          strokeWidth="2"
+          strokeDasharray="3,3"
+        />
+        
+        {/* Legs */}
+        <Ellipse
+          cx={goalCenterX - 12}
+          cy={210}
+          rx={goalProps.legW / 2}
+          ry={30}
+          fill="none"
+          stroke={Colors.dark.accent}
+          strokeWidth="2"
+          strokeDasharray="3,3"
+        />
+        <Ellipse
+          cx={goalCenterX + 12}
+          cy={210}
+          rx={goalProps.legW / 2}
+          ry={30}
+          fill="none"
+          stroke={Colors.dark.accent}
+          strokeWidth="2"
+          strokeDasharray="3,3"
+        />
+        
+        <Text x={goalCenterX} y={280} textAnchor="middle" fill={Colors.dark.accent} fontSize="12" fontWeight="bold">
           Goal Body
         </Text>
       </G>
@@ -324,7 +408,326 @@ export default function Human2DModel({
           <PanGestureHandler onGestureEvent={gestureHandler}>
             <Animated.View style={[styles.svgContainer, animatedStyle]}>
               <AnimatedSvg width="300" height="320" viewBox="0 0 300 320" style={{ transform: [{ rotateY: `${rotationAngle}deg` }] }}>
-            <AnimatedSvg width="300" height="320" viewBox="0 0 300 320">
+                <Defs>
+                  <LinearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <Stop offset="0%" stopColor={isFemale ? '#FFE4E1' : '#E6F3FF'} />
+                    <Stop offset="100%" stopColor={isFemale ? '#FFCCCB' : '#B0E0E6'} />
+                  </LinearGradient>
+                  <LinearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <Stop offset="0%" stopColor={isFemale ? '#8B4513' : '#654321'} />
+                    <Stop offset="100%" stopColor={isFemale ? '#654321' : '#4A2C17'} />
+                  </LinearGradient>
+                </Defs>
+              
+              {/* Head with more realistic shape */}
+              <Ellipse
+                cx={centerX}
+                cy={45}
+                rx={20}
+                ry={24}
+                fill="url(#skinGradient)"
+                stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                strokeWidth="1.5"
+              />
+          
+              {/* More realistic hair */}
+              <Path
+                d={`M ${centerX - 20} 28 Q ${centerX} 18 ${centerX + 20} 28 Q ${centerX + 18} 35 ${centerX + 10} 30 Q ${centerX} 22 ${centerX - 10} 30 Q ${centerX - 18} 35 ${centerX - 20} 28`}
+                fill="url(#hairGradient)"
+                stroke={isFemale ? '#654321' : '#4A2C17'}
+                strokeWidth="1"
+              />
+              
+              {/* Hair details for female */}
+              {isFemale && (
+                <Path
+                  d={`M ${centerX - 15} 32 Q ${centerX - 25} 45 ${centerX - 20} 60 Q ${centerX - 15} 65 ${centerX - 10} 60 Q ${centerX - 5} 55 ${centerX - 10} 50`}
+                  fill="url(#hairGradient)"
+                  stroke={isFemale ? '#654321' : '#4A2C17'}
+                  strokeWidth="1"
+                />
+              )}
+              {isFemale && (
+                <Path
+                  d={`M ${centerX + 15} 32 Q ${centerX + 25} 45 ${centerX + 20} 60 Q ${centerX + 15} 65 ${centerX + 10} 60 Q ${centerX + 5} 55 ${centerX + 10} 50`}
+                  fill="url(#hairGradient)"
+                  stroke={isFemale ? '#654321' : '#4A2C17'}
+                  strokeWidth="1"
+                />
+              )}
+          
+              {/* More realistic neck */}
+              <Ellipse
+                cx={centerX}
+                cy={73}
+                rx={6}
+                ry={10}
+                fill="url(#skinGradient)"
+                stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                strokeWidth="1"
+              />
+          
+              {/* More realistic shoulders */}
+              <Ellipse
+                cx={centerX}
+                cy={85}
+                rx={bodyProps.shoulderW}
+                ry={8}
+                fill="url(#skinGradient)"
+                stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                strokeWidth="1.5"
+              />
+          
+              {/* More realistic chest/torso */}
+              <Ellipse
+                cx={centerX}
+                cy={110}
+                rx={bodyProps.chestW}
+                ry={28}
+                fill="url(#skinGradient)"
+                stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                strokeWidth="1.5"
+              />
+              
+              {/* Chest definition for male */}
+              {!isFemale && (
+                <G>
+                  <Ellipse
+                    cx={centerX - 12}
+                    cy={105}
+                    rx={8}
+                    ry={6}
+                    fill="none"
+                    stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                    strokeWidth="1"
+                    opacity={0.6}
+                  />
+                  <Ellipse
+                    cx={centerX + 12}
+                    cy={105}
+                    rx={8}
+                    ry={6}
+                    fill="none"
+                    stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                    strokeWidth="1"
+                    opacity={0.6}
+                  />
+                </G>
+              )}
+              
+              {/* Breast definition for female */}
+              {isFemale && (
+                <G>
+                  <Ellipse
+                    cx={centerX - 10}
+                    cy={108}
+                    rx={8}
+                    ry={10}
+                    fill="rgba(255, 182, 193, 0.3)"
+                    stroke="#FFB6C1"
+                    strokeWidth="1"
+                  />
+                  <Ellipse
+                    cx={centerX + 10}
+                    cy={108}
+                    rx={8}
+                    ry={10}
+                    fill="rgba(255, 182, 193, 0.3)"
+                    stroke="#FFB6C1"
+                    strokeWidth="1"
+                  />
+                </G>
+              )}
+          
+              {/* More realistic waist */}
+              <Ellipse
+                cx={centerX}
+                cy={160}
+                rx={bodyProps.waistW}
+                ry={22}
+                fill="url(#skinGradient)"
+                stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                strokeWidth="1.5"
+              />
+              
+              {/* Abs definition for male */}
+              {!isFemale && (
+                <G opacity={0.4}>
+                  <Line x1={centerX} y1={140} x2={centerX} y2={180} stroke="#87CEEB" strokeWidth="1" />
+                  <Line x1={centerX - 8} y1={145} x2={centerX + 8} y2={145} stroke="#87CEEB" strokeWidth="1" />
+                  <Line x1={centerX - 8} y1={155} x2={centerX + 8} y2={155} stroke="#87CEEB" strokeWidth="1" />
+                  <Line x1={centerX - 8} y1={165} x2={centerX + 8} y2={165} stroke="#87CEEB" strokeWidth="1" />
+                  <Line x1={centerX - 8} y1={175} x2={centerX + 8} y2={175} stroke="#87CEEB" strokeWidth="1" />
+                </G>
+              )}
+          
+              {/* Enhanced female hips */}
+              {isFemale && (
+                <Ellipse
+                  cx={centerX}
+                  cy={175}
+                  rx={bodyProps.waistW + 10}
+                  ry={18}
+                  fill="url(#skinGradient)"
+                  stroke="#FFB6C1"
+                  strokeWidth="1.5"
+                />
+              )}
+          
+              {/* More realistic arms */}
+              <G>
+                {/* Left arm */}
+                <Ellipse
+                  cx={centerX - bodyProps.shoulderW - 8}
+                  cy={107}
+                  rx={bodyProps.armW / 2}
+                  ry={25}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX - bodyProps.shoulderW - 8}
+                  cy={150}
+                  rx={bodyProps.armW / 2 - 1}
+                  ry={22}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX - bodyProps.shoulderW - 8}
+                  cy={175}
+                  rx={7}
+                  ry={5}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1"
+                />
+                
+                {/* Right arm */}
+                <Ellipse
+                  cx={centerX + bodyProps.shoulderW + 8}
+                  cy={107}
+                  rx={bodyProps.armW / 2}
+                  ry={25}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX + bodyProps.shoulderW + 8}
+                  cy={150}
+                  rx={bodyProps.armW / 2 - 1}
+                  ry={22}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX + bodyProps.shoulderW + 8}
+                  cy={175}
+                  rx={7}
+                  ry={5}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1"
+                />
+              </G>
+          
+              {/* More realistic legs */}
+              <G>
+                {/* Left leg */}
+                <Ellipse
+                  cx={centerX - 12}
+                  cy={210}
+                  rx={bodyProps.legW / 2}
+                  ry={35}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX - 10}
+                  cy={270}
+                  rx={bodyProps.legW / 2 - 2}
+                  ry={32}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX - 10}
+                  cy={305}
+                  rx={14}
+                  ry={7}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1"
+                />
+                
+                {/* Right leg */}
+                <Ellipse
+                  cx={centerX + 12}
+                  cy={210}
+                  rx={bodyProps.legW / 2}
+                  ry={35}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX + 10}
+                  cy={270}
+                  rx={bodyProps.legW / 2 - 2}
+                  ry={32}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1.5"
+                />
+                <Ellipse
+                  cx={centerX + 10}
+                  cy={305}
+                  rx={14}
+                  ry={7}
+                  fill="url(#skinGradient)"
+                  stroke={isFemale ? '#FFB6C1' : '#87CEEB'}
+                  strokeWidth="1"
+                />
+              </G>
+          
+              {/* Enhanced face features */}
+              <G>
+                {/* Eyes with more detail */}
+                <Ellipse cx={centerX - 7} cy={40} rx={3} ry={2} fill="white" />
+                <Circle cx={centerX - 7} cy={40} r={2} fill="#4A90E2" />
+                <Circle cx={centerX - 7} cy={40} r={1} fill="#333" />
+                <Ellipse cx={centerX + 7} cy={40} rx={3} ry={2} fill="white" />
+                <Circle cx={centerX + 7} cy={40} r={2} fill="#4A90E2" />
+                <Circle cx={centerX + 7} cy={40} r={1} fill="#333" />
+                
+                {/* Eyebrows */}
+                <Path d={`M ${centerX - 10} 36 Q ${centerX - 7} 35 ${centerX - 4} 36`} stroke="#333" strokeWidth="1.5" fill="none" />
+                <Path d={`M ${centerX + 4} 36 Q ${centerX + 7} 35 ${centerX + 10} 36`} stroke="#333" strokeWidth="1.5" fill="none" />
+                
+                {/* Nose with more detail */}
+                <Path d={`M ${centerX} 45 L ${centerX - 1} 48 L ${centerX} 50 L ${centerX + 1} 48 Z`} fill="rgba(0,0,0,0.1)" />
+                <Circle cx={centerX - 2} cy={49} r={1} fill="rgba(0,0,0,0.2)" />
+                <Circle cx={centerX + 2} cy={49} r={1} fill="rgba(0,0,0,0.2)" />
+                
+                {/* Mouth with more detail */}
+                <Path d={`M ${centerX - 5} 52 Q ${centerX} 55 ${centerX + 5} 52`} stroke="#D2691E" strokeWidth="2" fill="none" />
+                <Path d={`M ${centerX - 3} 53 Q ${centerX} 54 ${centerX + 3} 53`} stroke="#FFB6C1" strokeWidth="1" fill="none" />
+              </G>
+              
+                {/* Current vs Goal comparison */}
+                {renderComparisonModel()}
+              </AnimatedSvg>
+            </Animated.View>
+          </PanGestureHandler>
+        ) : (
+          <TouchableOpacity onPress={handleWebRotation} style={styles.svgContainer}>
+            <AnimatedSvg width="300" height="320" viewBox="0 0 300 320" style={{ transform: [{ rotateY: `${rotationAngle}deg` }] }}>
               <Defs>
                 <LinearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <Stop offset="0%" stopColor={isFemale ? '#FFE4E1' : '#E6F3FF'} />
@@ -640,20 +1043,18 @@ export default function Human2DModel({
               {/* Current vs Goal comparison */}
               {renderComparisonModel()}
               
-              </AnimatedSvg>
-            </Animated.View>
-          </PanGestureHandler>
-        ) : (
-          <TouchableOpacity onPress={handleWebRotation} style={styles.svgContainer}>
-            <AnimatedSvg width="300" height="320" viewBox="0 0 300 320" style={{ transform: [{ rotateY: `${rotationAngle}deg` }] }}>
-        
-        {renderAnchorPoints()}
-        {renderSlider()}
-      </View>
-      
+              {/* Current body label when showing comparison */}
+              {showComparison && (
+                <Text x={centerX} y={280} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="12" fontWeight="bold">
+                  Current Body
+                </Text>
+              )}
             </AnimatedSvg>
           </TouchableOpacity>
         )}
+        
+        {renderAnchorPoints()}
+        {renderSlider()}
         
         <View style={styles.rotationHint}>
           <Text style={styles.rotationText}>

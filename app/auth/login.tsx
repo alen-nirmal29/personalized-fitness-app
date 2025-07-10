@@ -38,7 +38,8 @@ export default function LoginScreen() {
     if (validateForm()) {
       try {
         await login(email, password);
-        // Navigation will be handled by the root index.tsx based on auth state
+        // Force navigation to main app after successful login
+        router.replace('/(tabs)');
       } catch (error) {
         console.error('Login failed:', error);
       }

@@ -43,7 +43,8 @@ export default function SignupScreen() {
     if (validateForm()) {
       try {
         await signup(email, password, name);
-        // Navigation will be handled by the root index.tsx based on auth state
+        // Force navigation to onboarding after successful signup
+        router.replace('/onboarding/profile');
       } catch (error) {
         console.error('Signup failed:', error);
         // Error is already handled in the store
