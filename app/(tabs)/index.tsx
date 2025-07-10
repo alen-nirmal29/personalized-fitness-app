@@ -9,10 +9,12 @@ import ProgressBar from '@/components/ProgressBar';
 import HumanModel3D from '@/components/HumanModel3D';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutStore } from '@/store/workout-store';
+import { useWorkoutSessionStore } from '@/store/workout-session-store';
 
 export default function HomeScreen() {
   const { user } = useAuthStore();
   const { currentPlan } = useWorkoutStore();
+  const { workoutStats, getTodayWorkouts } = useWorkoutSessionStore();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -41,8 +43,7 @@ export default function HomeScreen() {
   };
 
   const handleStartWorkout = () => {
-    // Navigate to workout session
-    console.log('Starting workout...');
+    router.push('/workout/session');
   };
 
   const handleCreateWorkoutPlan = () => {
@@ -50,9 +51,12 @@ export default function HomeScreen() {
   };
 
   const handleViewComparison = () => {
-    // Navigate to body comparison screen
     router.push('/(tabs)/progress');
   };
+
+  // Calculate weekly progress based on real data
+  const weeklyProgress = workoutStats.weeklyWorkouts / 7; // Assuming 7 workouts per week goal
+  const todayWorkouts = getTodayWorkouts();
 
   // Mock goal measurements for demonstration
   const goalMeasurements = {
@@ -81,25 +85,25 @@ export default function HomeScreen() {
         
         <View style={styles.progressSection}>
           <Text style={styles.progressTitle}>Weekly Progress</Text>
-          <ProgressBar progress={0.6} showPercentage />
+          <ProgressBar progress={Math.min(weeklyProgress, 1)} showPercentage />
         </View>
         
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Calendar size={20} color={Colors.dark.accent} />
-            <Text style={styles.statValue}>4/7</Text>
+            <Text style={styles.statValue}>{workoutStats.weeklyWorkouts}/7</Text>
             <Text style={styles.statLabel}>Workouts</Text>
           </View>
           
           <View style={styles.statItem}>
             <Dumbbell size={20} color={Colors.dark.accent} />
-            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statValue}>{workoutStats.totalExercises}</Text>
             <Text style={styles.statLabel}>Exercises</Text>
           </View>
           
           <View style={styles.statItem}>
             <TrendingUp size={20} color={Colors.dark.accent} />
-            <Text style={styles.statValue}>+5%</Text>
+            <Text style={styles.statValue}>+{workoutStats.strengthIncrease}%</Text>
             <Text style={styles.statLabel}>Strength</Text>
           </View>
         </View>
@@ -107,45 +111,59 @@ export default function HomeScreen() {
 
       <Text style={styles.sectionTitle}>Today's Workout</Text>
       
-      {currentPlan ? (
+      {currentPlan && currentPlan.schedule.length > 0 ? (
         <Card style={styles.workoutCard}>
           <View style={styles.workoutHeader}>
-            <Text style={styles.workoutTitle}>Upper Body Strength</Text>
+            <Text style={styles.workoutTitle}>{currentPlan.schedule[0].name}</Text>
             <View style={styles.workoutBadge}>
               <Text style={styles.workoutBadgeText}>45 min</Text>
             </View>
           </View>
           
           <Text style={styles.workoutDescription}>
-            Focus on chest, shoulders, and triceps with compound movements
+            {currentPlan.schedule[0].restDay 
+              ? 'Take a well-deserved rest day to recover'
+              : `${currentPlan.schedule[0].exercises.length} exercises planned for today`
+            }
           </Text>
           
-          <View style={styles.exerciseList}>
-            <View style={styles.exerciseItem}>
-              <Dumbbell size={16} color={Colors.dark.accent} />
-              <Text style={styles.exerciseName}>Bench Press</Text>
-              <Text style={styles.exerciseDetails}>3 × 10</Text>
-            </View>
-            
-            <View style={styles.exerciseItem}>
-              <Dumbbell size={16} color={Colors.dark.accent} />
-              <Text style={styles.exerciseName}>Shoulder Press</Text>
-              <Text style={styles.exerciseDetails}>3 × 12</Text>
-            </View>
-            
-            <View style={styles.exerciseItem}>
-              <Dumbbell size={16} color={Colors.dark.accent} />
-              <Text style={styles.exerciseName}>Tricep Extensions</Text>
-              <Text style={styles.exerciseDetails}>3 × 15</Text>
-            </View>
-          </View>
+          {!currentPlan.schedule[0].restDay && (
+            <>
+              <View style={styles.exerciseList}>
+                {currentPlan.schedule[0].exercises.slice(0, 3).map((exercise, index) => (
+                  <View key={exercise.id} style={styles.exerciseItem}>
+                    <Dumbbell size={16} color={Colors.dark.accent} />
+                    <Text style={styles.exerciseName}>{exercise.name}</Text>
+                    <Text style={styles.exerciseDetails}>{exercise.sets} × {exercise.reps}</Text>
+                  </View>
+                ))}
+                {currentPlan.schedule[0].exercises.length > 3 && (
+                  <Text style={styles.moreExercises}>
+                    +{currentPlan.schedule[0].exercises.length - 3} more exercises
+                  </Text>
+                )}
+              </View>
+              
+              <Button
+                title={todayWorkouts.length > 0 ? "Start Another Workout" : "Start Workout"}
+                onPress={handleStartWorkout}
+                variant="primary"
+                style={styles.startButton}
+              />
+            </>
+          )}
           
-          <Button
-            title="Start Workout"
-            onPress={handleStartWorkout}
-            variant="primary"
-            style={styles.startButton}
-          />
+          {todayWorkouts.length > 0 && (
+            <View style={styles.todayStats}>
+              <Text style={styles.todayStatsTitle}>Today's Progress</Text>
+              <Text style={styles.todayStatsText}>
+                ✅ {todayWorkouts.length} workout{todayWorkouts.length > 1 ? 's' : ''} completed
+              </Text>
+              <Text style={styles.todayStatsText}>
+                🔥 {todayWorkouts.reduce((sum, w) => sum + (w.caloriesBurned || 0), 0)} calories burned
+              </Text>
+            </View>
+          )}
         </Card>
       ) : (
         <Card style={styles.emptyWorkoutCard}>
@@ -314,8 +332,31 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.dark.subtext,
   },
+  moreExercises: {
+    fontSize: 14,
+    color: Colors.dark.accent,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
   startButton: {
     marginTop: 8,
+  },
+  todayStats: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    borderRadius: 8,
+  },
+  todayStatsTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: Colors.dark.success,
+    marginBottom: 4,
+  },
+  todayStatsText: {
+    fontSize: 12,
+    color: Colors.dark.success,
+    marginBottom: 2,
   },
   emptyWorkoutCard: {
     marginBottom: 24,

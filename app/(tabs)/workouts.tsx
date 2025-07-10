@@ -1,11 +1,34 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Dumbbell } from 'lucide-react-native';
+import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 import Card from '@/components/Card';
 import Button from '@/components/Button';
+import { useWorkoutSessionStore } from '@/store/workout-session-store';
 
 export default function WorkoutsScreen() {
+  const { getTodayWorkouts } = useWorkoutSessionStore();
+  
+  // Get current date
+  const today = new Date();
+  const currentWeekStart = new Date(today);
+  currentWeekStart.setDate(today.getDate() - today.getDay() + 1); // Monday
+  
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+  
+  const formatWeekRange = () => {
+    const weekEnd = new Date(currentWeekStart);
+    weekEnd.setDate(currentWeekStart.getDate() + 6);
+    
+    return `${formatDate(currentWeekStart)} - ${formatDate(weekEnd)}, ${today.getFullYear()}`;
+  };
+
   const handlePreviousWeek = () => {
     console.log('Previous week');
   };
@@ -15,7 +38,20 @@ export default function WorkoutsScreen() {
   };
 
   const handleStartWorkout = () => {
-    console.log('Starting workout...');
+    router.push('/workout/session');
+  };
+
+  // Generate week days
+  const weekDays = [];
+  for (let i = 0; i < 7; i++) {
+    const date = new Date(currentWeekStart);
+    date.setDate(currentWeekStart.getDate() + i);
+    weekDays.push(date);
+  }
+
+  const todayWorkouts = getTodayWorkouts();
+  const isToday = (date: Date) => {
+    return date.toDateString() === today.toDateString();
   };
 
   return (
@@ -37,7 +73,7 @@ export default function WorkoutsScreen() {
         
         <View style={styles.calendarTitleContainer}>
           <CalendarIcon size={20} color={Colors.dark.text} />
-          <Text style={styles.calendarTitle}>July 7 - July 13, 2025</Text>
+          <Text style={styles.calendarTitle}>{formatWeekRange()}</Text>
         </View>
         
         <Button
@@ -51,19 +87,19 @@ export default function WorkoutsScreen() {
       </View>
 
       <View style={styles.daysContainer}>
-        {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+        {weekDays.map((date, index) => (
           <View 
-            key={day} 
+            key={date.toISOString()} 
             style={[
               styles.dayItem, 
-              index === 0 && styles.activeDayItem
+              isToday(date) && styles.activeDayItem
             ]}
           >
-            <Text style={[styles.dayText, index === 0 && styles.activeDayText]}>
-              {day}
+            <Text style={[styles.dayText, isToday(date) && styles.activeDayText]}>
+              {date.toLocaleDateString('en-US', { weekday: 'short' })}
             </Text>
-            <Text style={[styles.dateText, index === 0 && styles.activeDateText]}>
-              {7 + index}
+            <Text style={[styles.dateText, isToday(date) && styles.activeDateText]}>
+              {date.getDate()}
             </Text>
           </View>
         ))}
@@ -71,64 +107,70 @@ export default function WorkoutsScreen() {
 
       <Text style={styles.sectionTitle}>Today's Workouts</Text>
 
-      <Card style={styles.workoutCard}>
-        <View style={styles.workoutHeader}>
-          <View style={styles.workoutTitleContainer}>
-            <Dumbbell size={20} color={Colors.dark.accent} />
-            <Text style={styles.workoutTitle}>Upper Body Strength</Text>
+      {todayWorkouts.length > 0 ? (
+        todayWorkouts.map((workout) => (
+          <Card key={workout.id} style={styles.completedWorkoutCard}>
+            <View style={styles.workoutHeader}>
+              <View style={styles.workoutTitleContainer}>
+                <Dumbbell size={20} color={Colors.dark.success} />
+                <Text style={styles.workoutTitle}>{workout.workoutName}</Text>
+              </View>
+              <View style={styles.completedBadge}>
+                <Text style={styles.completedBadgeText}>Completed</Text>
+              </View>
+            </View>
+            
+            <View style={styles.workoutDetails}>
+              <Text style={styles.workoutTime}>
+                {new Date(workout.date).toLocaleTimeString('en-US', { 
+                  hour: 'numeric', 
+                  minute: '2-digit' 
+                })}
+              </Text>
+              <Text style={styles.workoutDescription}>
+                {workout.duration} minutes • {workout.exercisesCompleted} exercises • {workout.caloriesBurned} calories
+              </Text>
+            </View>
+          </Card>
+        ))
+      ) : (
+        <Card style={styles.workoutCard}>
+          <View style={styles.workoutHeader}>
+            <View style={styles.workoutTitleContainer}>
+              <Dumbbell size={20} color={Colors.dark.accent} />
+              <Text style={styles.workoutTitle}>Upper Body Strength</Text>
+            </View>
+            <View style={styles.workoutBadge}>
+              <Text style={styles.workoutBadgeText}>45 min</Text>
+            </View>
           </View>
-          <View style={styles.workoutBadge}>
-            <Text style={styles.workoutBadgeText}>45 min</Text>
+          
+          <View style={styles.workoutDetails}>
+            <Text style={styles.workoutTime}>Scheduled for today</Text>
+            <Text style={styles.workoutDescription}>
+              Focus on chest, shoulders, and triceps with compound movements
+            </Text>
           </View>
-        </View>
-        
-        <View style={styles.workoutDetails}>
-          <Text style={styles.workoutTime}>9:00 AM</Text>
-          <Text style={styles.workoutDescription}>
-            Focus on chest, shoulders, and triceps with compound movements
-          </Text>
-        </View>
-        
-        <Button
-          title="Start Workout"
-          onPress={handleStartWorkout}
-          variant="primary"
-          style={styles.startButton}
-        />
-      </Card>
-
-      <Card style={styles.workoutCard}>
-        <View style={styles.workoutHeader}>
-          <View style={styles.workoutTitleContainer}>
-            <Dumbbell size={20} color={Colors.dark.accent} />
-            <Text style={styles.workoutTitle}>Core Conditioning</Text>
-          </View>
-          <View style={styles.workoutBadge}>
-            <Text style={styles.workoutBadgeText}>30 min</Text>
-          </View>
-        </View>
-        
-        <View style={styles.workoutDetails}>
-          <Text style={styles.workoutTime}>5:00 PM</Text>
-          <Text style={styles.workoutDescription}>
-            Strengthen your core with a series of targeted exercises
-          </Text>
-        </View>
-        
-        <Button
-          title="Start Workout"
-          onPress={handleStartWorkout}
-          variant="primary"
-          style={styles.startButton}
-        />
-      </Card>
+          
+          <Button
+            title="Start Workout"
+            onPress={handleStartWorkout}
+            variant="primary"
+            style={styles.startButton}
+          />
+        </Card>
+      )}
 
       <Text style={styles.sectionTitle}>Upcoming Workouts</Text>
 
       <Card style={styles.upcomingCard}>
         <View style={styles.upcomingHeader}>
-          <Text style={styles.upcomingDay}>Tuesday</Text>
-          <Text style={styles.upcomingDate}>July 8</Text>
+          <Text style={styles.upcomingDay}>
+            {weekDays[1]?.toLocaleDateString('en-US', { weekday: 'long' }) || 'Tuesday'}
+          </Text>
+          <Text style={styles.upcomingDate}>
+            {formatDate(weekDays[1] || new Date())}
+          </Text>
         </View>
         
         <View style={styles.upcomingWorkout}>
@@ -144,8 +186,12 @@ export default function WorkoutsScreen() {
 
       <Card style={styles.upcomingCard}>
         <View style={styles.upcomingHeader}>
-          <Text style={styles.upcomingDay}>Wednesday</Text>
-          <Text style={styles.upcomingDate}>July 9</Text>
+          <Text style={styles.upcomingDay}>
+            {weekDays[2]?.toLocaleDateString('en-US', { weekday: 'long' }) || 'Wednesday'}
+          </Text>
+          <Text style={styles.upcomingDate}>
+            {formatDate(weekDays[2] || new Date())}
+          </Text>
         </View>
         
         <View style={styles.upcomingWorkout}>
@@ -243,6 +289,11 @@ const styles = StyleSheet.create({
   workoutCard: {
     marginBottom: 16,
   },
+  completedWorkoutCard: {
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.dark.success,
+  },
   workoutHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -267,6 +318,17 @@ const styles = StyleSheet.create({
   },
   workoutBadgeText: {
     color: Colors.dark.gradient.primary,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  completedBadge: {
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  completedBadgeText: {
+    color: Colors.dark.success,
     fontSize: 12,
     fontWeight: 'bold',
   },

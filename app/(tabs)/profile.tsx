@@ -23,17 +23,16 @@ export default function ProfileScreen() {
           text: 'Logout',
           onPress: async () => {
             try {
+              console.log('Starting logout process...');
               await logout();
+              console.log('Logout completed, navigating to welcome screen...');
+              
               // Force navigation to welcome screen after logout
-              setTimeout(() => {
-                router.replace('/');
-              }, 100);
+              router.replace('/');
             } catch (error) {
               console.error('Logout error:', error);
               // Force navigation even if logout fails
-              setTimeout(() => {
-                router.replace('/');
-              }, 100);
+              router.replace('/');
             }
           },
           style: 'destructive',

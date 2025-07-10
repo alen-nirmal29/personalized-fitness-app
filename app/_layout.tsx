@@ -117,6 +117,13 @@ function RootLayoutNav() {
           }} 
         />
         <Stack.Screen 
+          name="workout/session" 
+          options={{ 
+            title: "Workout Session",
+            headerShown: true,
+          }} 
+        />
+        <Stack.Screen 
           name="(tabs)" 
           options={{ 
             headerShown: false,
