@@ -41,7 +41,7 @@ export default function LoginScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/');
   };
 
   const handleSignup = () => {

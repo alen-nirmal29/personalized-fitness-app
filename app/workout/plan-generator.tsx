@@ -32,7 +32,7 @@ export default function PlanGeneratorScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/workout/plan-selection');
   };
 
   const handleDurationSelect = (selected: string) => {

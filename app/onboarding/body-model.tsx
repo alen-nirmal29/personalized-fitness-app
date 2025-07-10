@@ -62,7 +62,8 @@ export default function BodyModelScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    console.log('Body model back button pressed');
+    router.replace('/onboarding/body-composition');
   };
 
   return (

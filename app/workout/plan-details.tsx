@@ -38,7 +38,7 @@ export default function PlanDetailsScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/workout/plan-selection');
   };
 
   // Mock goal measurements based on the workout plan

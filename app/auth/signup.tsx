@@ -48,7 +48,7 @@ export default function SignupScreen() {
   };
 
   const handleBack = () => {
-    router.back();
+    router.replace('/');
   };
 
   const handleLogin = () => {

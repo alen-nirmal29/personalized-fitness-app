@@ -112,6 +112,7 @@ export default function BodyCompositionScreen() {
   };
 
   const handleBack = () => {
+    console.log('Body composition back button pressed');
     router.replace('/onboarding/goals');
   };
 

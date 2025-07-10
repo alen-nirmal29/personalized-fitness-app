@@ -208,7 +208,7 @@ export default function WorkoutSessionScreen() {
           <Text style={styles.errorText}>No workout session found</Text>
           <Button
             title="Go Back"
-            onPress={() => router.back()}
+            onPress={() => router.replace('/(tabs)')}
             variant="outline"
           />
         </View>
