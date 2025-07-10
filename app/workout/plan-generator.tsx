@@ -22,7 +22,21 @@ export default function PlanGeneratorScreen() {
     
     setIsGenerating(true);
     try {
-      await generateWorkoutPlan(user.specificGoal, duration);
+      // Prepare user details for AI
+      const userDetails = {
+        age: user.age,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        fitnessLevel: user.fitnessLevel,
+        bodyFat: user.bodyFat,
+        currentMeasurements: user.currentMeasurements,
+        goalMeasurements: user.goalMeasurements,
+        specificGoal: user.specificGoal,
+        additionalNotes: message,
+      };
+      
+      await generateWorkoutPlan(user.specificGoal, duration, userDetails);
       router.push('/workout/plan-details');
     } catch (err) {
       console.error('Error generating plan:', err);

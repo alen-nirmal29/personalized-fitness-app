@@ -16,7 +16,18 @@ export default function PlanSelectionScreen() {
 
   useEffect(() => {
     if (user?.specificGoal) {
-      getRecommendedPlans(user.specificGoal);
+      // Pass user details to get personalized recommendations
+      const userDetails = {
+        age: user.age,
+        gender: user.gender,
+        height: user.height,
+        weight: user.weight,
+        fitnessLevel: user.fitnessLevel,
+        bodyFat: user.bodyFat,
+        currentMeasurements: user.currentMeasurements,
+        goalMeasurements: user.goalMeasurements,
+      };
+      getRecommendedPlans(user.specificGoal, userDetails);
     }
   }, [user?.specificGoal]);
 
@@ -41,26 +52,29 @@ export default function PlanSelectionScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Choose a Workout Plan</Text>
           <Text style={styles.subtitle}>
-            Select from our recommended plans or create a custom one
+            AI-powered recommendations based on your body composition and goals
           </Text>
         </View>
 
         <Button
-          title="Create Custom Plan"
+          title="🤖 Generate AI Custom Plan"
           onPress={handleCreateCustomPlan}
-          variant="outline"
+          variant="primary"
           size="large"
           style={styles.customButton}
-          leftIcon={<Plus size={20} color={Colors.dark.accent} />}
+          leftIcon={<Plus size={20} color={Colors.dark.background} />}
         />
 
         <View style={styles.plansContainer}>
-          <Text style={styles.sectionTitle}>Recommended Plans</Text>
+          <Text style={styles.sectionTitle}>🎯 AI Recommended Plans</Text>
+          <Text style={styles.recommendationNote}>
+            Based on your: {user?.gender}, {user?.age}y, {user?.height}cm, {user?.weight}kg, {user?.fitnessLevel} level
+          </Text>
           
           {isLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator color={Colors.dark.accent} size="large" />
-              <Text style={styles.loadingText}>Loading recommended plans...</Text>
+              <Text style={styles.loadingText}>AI is analyzing your profile...</Text>
             </View>
           ) : recommendedPlans.length > 0 ? (
             recommendedPlans.map((plan) => (
@@ -73,8 +87,8 @@ export default function PlanSelectionScreen() {
             ))
           ) : (
             <Text style={styles.emptyText}>
-              No recommended plans available for your goals yet.
-              Try creating a custom plan instead.
+              Unable to load AI recommendations right now.
+              Try generating a custom AI plan instead.
             </Text>
           )}
         </View>
@@ -127,7 +141,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: Colors.dark.text,
+    marginBottom: 8,
+  },
+  recommendationNote: {
+    fontSize: 14,
+    color: Colors.dark.subtext,
     marginBottom: 16,
+    fontStyle: 'italic',
   },
   loadingContainer: {
     padding: 24,

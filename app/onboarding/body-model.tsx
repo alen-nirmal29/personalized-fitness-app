@@ -81,6 +81,8 @@ export default function BodyModelScreen() {
 
         <Human2DModel 
           user={user}
+          goalMeasurements={user?.goalMeasurements}
+          showComparison={!!user?.goalMeasurements}
           interactive={true}
           onMeasurementChange={handleMeasurementsChange}
         />
@@ -88,19 +90,22 @@ export default function BodyModelScreen() {
         <View style={styles.instructionsContainer}>
           <Text style={styles.instructionsTitle}>Customize Your Body Model</Text>
           <Text style={styles.instructionsText}>
-            • Realistic human body structure with gender-specific features
+            • Ultra-realistic 2D human model with anatomical accuracy
           </Text>
           <Text style={styles.instructionsText}>
-            • Tap anchor points (colored circles) to adjust body proportions
+            • Drag horizontally to rotate the model 360 degrees
           </Text>
           <Text style={styles.instructionsText}>
-            • Use sliders to increase or decrease specific body part sizes
+            • Tap colored anchor points to customize body measurements
           </Text>
           <Text style={styles.instructionsText}>
-            • Model adapts to your gender, height, weight, and body composition
+            • Enhanced muscle definition and gender-specific features
           </Text>
           <Text style={styles.instructionsText}>
-            • Your customizations will be saved for progress tracking
+            • Current vs Goal body comparison (when goals are set)
+          </Text>
+          <Text style={styles.instructionsText}>
+            • All measurements saved for progress tracking
           </Text>
         </View>
 

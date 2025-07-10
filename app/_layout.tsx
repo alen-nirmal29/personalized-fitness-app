@@ -5,6 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Colors from "@/constants/colors";
 
 export const unstable_settings = {
@@ -41,8 +42,9 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.dark.background }}>
-      <StatusBar style="light" />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={{ flex: 1, backgroundColor: Colors.dark.background }}>
+        <StatusBar style="light" />
       <Stack
         screenOptions={{
           headerStyle: {
@@ -130,6 +132,7 @@ function RootLayoutNav() {
           }} 
         />
       </Stack>
-    </View>
+      </View>
+    </GestureHandlerRootView>
   );
 }
