@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import Colors from '@/constants/colors';
 import Button from '@/components/Button';
 import HumanModel3D from '@/components/HumanModel3D';
+import BodyModelCanvas from '@/components/BodyModelCanvas';
 import { useAuthStore } from '@/store/auth-store';
 import { BodyMeasurements } from '@/types/user';
 
@@ -86,18 +87,21 @@ export default function BodyModelScreen() {
         />
 
         <View style={styles.instructionsContainer}>
-          <Text style={styles.instructionsTitle}>Your Personalized Model</Text>
+          <Text style={styles.instructionsTitle}>Customize Your Body Model</Text>
           <Text style={styles.instructionsText}>
-            • This 3D model is created based on your physical characteristics
+            • Drag anywhere to rotate the model 360 degrees
           </Text>
           <Text style={styles.instructionsText}>
-            • It will be used to track your progress throughout your fitness journey
+            • Tap anchor points (colored circles) to adjust body proportions
           </Text>
           <Text style={styles.instructionsText}>
-            • You can rotate and zoom to view from different angles
+            • Use sliders to increase or decrease specific body part sizes
           </Text>
           <Text style={styles.instructionsText}>
-            • The model will update as you progress with your workouts
+            • Model adapts to your gender, height, weight, and body composition
+          </Text>
+          <Text style={styles.instructionsText}>
+            • Your customizations will be saved for progress tracking
           </Text>
         </View>
 
