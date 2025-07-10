@@ -79,17 +79,23 @@ export default function WorkoutsScreen() {
     
     // Mock upcoming workouts based on current plan or defaults
     if (currentPlan && currentPlan.schedule.length > 1) {
+      const nextWorkout = currentPlan.schedule[1] || currentPlan.schedule[0];
       upcoming.push({
         date: tomorrow,
-        workout: currentPlan.schedule[1] || currentPlan.schedule[0],
+        workout: {
+          ...nextWorkout,
+          description: nextWorkout.description || 'Complete your scheduled workout routine'
+        },
         time: '10:00 AM'
       });
     } else {
       upcoming.push({
         date: tomorrow,
         workout: {
+          id: 'upcoming-1',
           name: 'Lower Body Strength',
           description: 'Focus on legs and glutes with compound movements',
+          exercises: [],
           restDay: false
         },
         time: '10:00 AM'
@@ -99,8 +105,10 @@ export default function WorkoutsScreen() {
     upcoming.push({
       date: dayAfterTomorrow,
       workout: {
+        id: 'rest-day',
         name: 'Rest Day',
         description: 'Take a day off to recover and let your muscles rebuild',
+        exercises: [],
         restDay: true
       },
       time: 'All Day'
@@ -237,7 +245,7 @@ export default function WorkoutsScreen() {
               <Text style={styles.upcomingWorkoutTime}>{item.time}</Text>
             </View>
             <Text style={styles.upcomingWorkoutDescription}>
-              {item.workout.description}
+              {item.workout.description || 'Complete your scheduled workout routine'}
             </Text>
           </View>
         </Card>

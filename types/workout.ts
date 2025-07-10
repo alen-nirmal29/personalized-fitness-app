@@ -17,6 +17,7 @@ export type Exercise = {
 export type WorkoutDay = {
   id: string;
   name: string;
+  description?: string;
   exercises: Exercise[];
   restDay: boolean;
 };
