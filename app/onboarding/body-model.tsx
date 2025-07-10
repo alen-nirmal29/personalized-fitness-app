@@ -18,6 +18,7 @@ export default function BodyModelScreen() {
     legs: 50,
     shoulders: 50,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleMeasurementsChange = (newMeasurements: Record<string, number>) => {
     setMeasurements(prev => ({
@@ -26,12 +27,34 @@ export default function BodyModelScreen() {
     }));
   };
 
-  const handleNext = () => {
-    updateProfile({
-      currentMeasurements: measurements,
-    });
+  const handleNext = async () => {
+    console.log('Body model handleNext called');
+    console.log('Current user:', user);
+    console.log('Measurements:', measurements);
     
-    router.push('/onboarding/specific-goals');
+    setIsLoading(true);
+    
+    try {
+      console.log('Updating current measurements...');
+      
+      updateProfile({
+        currentMeasurements: measurements,
+      });
+      
+      console.log('Current measurements updated, waiting...');
+      
+      // Small delay to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('Navigating to specific-goals...');
+      
+      router.replace('/onboarding/specific-goals');
+      
+    } catch (error) {
+      console.error('Error updating measurements:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -78,6 +101,7 @@ export default function BodyModelScreen() {
             variant="outline"
             size="large"
             style={styles.button}
+            disabled={isLoading}
           />
           <Button
             title="Next"
@@ -85,6 +109,8 @@ export default function BodyModelScreen() {
             variant="primary"
             size="large"
             style={styles.button}
+            isLoading={isLoading}
+            disabled={isLoading}
           />
         </View>
       </ScrollView>

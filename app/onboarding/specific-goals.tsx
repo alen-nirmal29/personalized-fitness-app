@@ -10,18 +10,43 @@ import { useAuthStore } from '@/store/auth-store';
 import { SpecificGoal } from '@/types/user';
 
 export default function SpecificGoalsScreen() {
-  const { updateProfile, completeOnboarding } = useAuthStore();
+  const { updateProfile, completeOnboarding, user } = useAuthStore();
   const [selectedGoal, setSelectedGoal] = useState<SpecificGoal | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    console.log('Specific goals handleNext called');
+    console.log('Selected goal:', selectedGoal);
+    console.log('Current user:', user);
+    
     if (selectedGoal) {
-      updateProfile({
-        specificGoal: selectedGoal,
-      });
+      setIsLoading(true);
       
-      completeOnboarding();
-      
-      router.push('/workout/plan-selection');
+      try {
+        console.log('Updating specific goal...');
+        
+        updateProfile({
+          specificGoal: selectedGoal,
+        });
+        
+        console.log('Specific goal updated, completing onboarding...');
+        
+        completeOnboarding();
+        
+        console.log('Onboarding completed, waiting...');
+        
+        // Small delay to ensure state is updated
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        console.log('Navigating to workout plan selection...');
+        
+        router.replace('/workout/plan-selection');
+        
+      } catch (error) {
+        console.error('Error completing onboarding:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -87,14 +112,16 @@ export default function SpecificGoalsScreen() {
             variant="outline"
             size="large"
             style={styles.button}
+            disabled={isLoading}
           />
           <Button
-            title="Next"
+            title="Complete Setup"
             onPress={handleNext}
             variant="primary"
             size="large"
             style={styles.button}
             disabled={!selectedGoal}
+            isLoading={isLoading}
           />
         </View>
       </ScrollView>

@@ -23,10 +23,12 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
 
       initialize: () => {
+        console.log('Auth store initialized');
         set({ isInitialized: true });
       },
 
       login: async (email: string, password: string) => {
+        console.log('Login attempt:', email);
         set({ isLoading: true, error: null });
         try {
           // In a real app, this would be an API call
@@ -41,12 +43,15 @@ export const useAuthStore = create<AuthStore>()(
             hasCompletedOnboarding: false,
           };
           
+          console.log('Login successful:', user);
+          
           set({
             isAuthenticated: true,
             user,
             isLoading: false,
           });
         } catch (error) {
+          console.error('Login error:', error);
           set({
             error: 'Invalid email or password',
             isLoading: false,
@@ -55,6 +60,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       signup: async (email: string, password: string, name: string) => {
+        console.log('Signup attempt:', email, name);
         set({ isLoading: true, error: null });
         try {
           // In a real app, this would be an API call
@@ -69,12 +75,15 @@ export const useAuthStore = create<AuthStore>()(
             hasCompletedOnboarding: false,
           };
           
+          console.log('Signup successful:', user);
+          
           set({
             isAuthenticated: true,
             user,
             isLoading: false,
           });
         } catch (error) {
+          console.error('Signup error:', error);
           set({
             error: 'Failed to create account',
             isLoading: false,
@@ -83,6 +92,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
+        console.log('Logout initiated');
         try {
           // Clear all auth state first
           set({
@@ -92,8 +102,11 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
           });
           
+          console.log('Auth state cleared');
+          
           // Clear persisted storage
           await AsyncStorage.removeItem('auth-storage');
+          console.log('Storage cleared');
         } catch (error) {
           console.error('Logout error:', error);
           // Force clear state even if storage clear fails
@@ -108,28 +121,37 @@ export const useAuthStore = create<AuthStore>()(
 
       updateProfile: (profile: Partial<UserProfile>) => {
         const { user } = get();
+        console.log('Updating profile:', profile);
+        console.log('Current user:', user);
+        
         if (user) {
           const updatedUser = {
             ...user,
             ...profile,
           };
           
+          console.log('Updated user:', updatedUser);
+          
           set({
             user: updatedUser,
           });
-          
-          console.log('Profile updated:', updatedUser);
         }
       },
 
       completeOnboarding: () => {
         const { user } = get();
+        console.log('Completing onboarding for user:', user);
+        
         if (user) {
+          const updatedUser = {
+            ...user,
+            hasCompletedOnboarding: true,
+          };
+          
+          console.log('Onboarding completed for user:', updatedUser);
+          
           set({
-            user: {
-              ...user,
-              hasCompletedOnboarding: true,
-            },
+            user: updatedUser,
           });
         }
       },
@@ -139,6 +161,7 @@ export const useAuthStore = create<AuthStore>()(
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
         // Called when the persisted state is loaded
+        console.log('Auth store rehydrated:', state);
         if (state) {
           state.initialize();
         }

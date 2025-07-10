@@ -10,27 +10,36 @@ import { useAuthStore } from '@/store/auth-store';
 import { FitnessGoal } from '@/types/user';
 
 export default function GoalsScreen() {
-  const { updateProfile } = useAuthStore();
+  const { updateProfile, user } = useAuthStore();
   const [selectedGoal, setSelectedGoal] = useState<FitnessGoal | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleNext = async () => {
+    console.log('Goals handleNext called');
+    console.log('Selected goal:', selectedGoal);
+    console.log('Current user:', user);
+    
     if (selectedGoal) {
       setIsLoading(true);
       
       try {
+        console.log('Updating fitness goal...');
+        
         // Update profile with the selected goal
         updateProfile({
           fitnessGoal: selectedGoal,
         });
         
+        console.log('Fitness goal updated, waiting...');
+        
         // Small delay to ensure state is updated
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        console.log('Navigating to body-composition with goal:', selectedGoal);
+        console.log('Navigating to body-composition...');
         
-        // Navigate to body composition page
-        router.push('/onboarding/body-composition');
+        // Navigate to body composition page using replace
+        router.replace('/onboarding/body-composition');
+        
       } catch (error) {
         console.error('Error updating fitness goal:', error);
       } finally {

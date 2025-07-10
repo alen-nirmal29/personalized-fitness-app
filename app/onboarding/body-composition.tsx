@@ -12,7 +12,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { BodyComposition } from '@/types/user';
 
 export default function BodyCompositionScreen() {
-  const { updateProfile } = useAuthStore();
+  const { updateProfile, user } = useAuthStore();
   
   const [bodyWeight, setBodyWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -28,31 +28,82 @@ export default function BodyCompositionScreen() {
   const [weightWithoutFat, setWeightWithoutFat] = useState('');
   const [image, setImage] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleNext = () => {
-    const composition: BodyComposition = {};
+  const handleNext = async () => {
+    console.log('Body composition handleNext called');
+    console.log('Current user:', user);
     
-    if (bodyFat && !isNaN(Number(bodyFat))) {
-      composition.bodyFat = Number(bodyFat);
+    setIsLoading(true);
+    
+    try {
+      const composition: BodyComposition = {};
+      
+      if (bodyFat && !isNaN(Number(bodyFat))) {
+        composition.bodyFat = Number(bodyFat);
+      }
+      
+      if (muscleMass && !isNaN(Number(muscleMass))) {
+        composition.muscleMass = Number(muscleMass);
+      }
+      
+      if (boneMass && !isNaN(Number(boneMass))) {
+        composition.boneMass = Number(boneMass);
+      }
+      
+      if (bodyWater && !isNaN(Number(bodyWater))) {
+        composition.waterWeight = Number(bodyWater);
+      }
+      
+      if (bmr && !isNaN(Number(bmr))) {
+        composition.bmr = Number(bmr);
+      }
+      
+      if (visceralFat && !isNaN(Number(visceralFat))) {
+        composition.visceralFat = Number(visceralFat);
+      }
+      
+      if (proteinMass && !isNaN(Number(proteinMass))) {
+        composition.proteinMass = Number(proteinMass);
+      }
+      
+      if (bmi && !isNaN(Number(bmi))) {
+        composition.bmi = Number(bmi);
+      }
+      
+      if (muscleRate && !isNaN(Number(muscleRate))) {
+        composition.muscleRate = Number(muscleRate);
+      }
+      
+      if (metabolicAge && !isNaN(Number(metabolicAge))) {
+        composition.metabolicAge = Number(metabolicAge);
+      }
+      
+      if (weightWithoutFat && !isNaN(Number(weightWithoutFat))) {
+        composition.weightWithoutFat = Number(weightWithoutFat);
+      }
+      
+      console.log('Updating body composition:', composition);
+      
+      updateProfile({
+        bodyComposition: composition,
+      });
+      
+      console.log('Body composition updated, waiting...');
+      
+      // Small delay to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('Navigating to body-model...');
+      
+      router.replace('/onboarding/body-model');
+      
+    } catch (error) {
+      console.error('Error updating body composition:', error);
+      Alert.alert('Error', 'Failed to save body composition. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    if (muscleMass && !isNaN(Number(muscleMass))) {
-      composition.muscleMass = Number(muscleMass);
-    }
-    
-    if (boneMass && !isNaN(Number(boneMass))) {
-      composition.boneMass = Number(boneMass);
-    }
-    
-    if (bodyWater && !isNaN(Number(bodyWater))) {
-      composition.waterWeight = Number(bodyWater);
-    }
-    
-    updateProfile({
-      bodyComposition: composition,
-    });
-    
-    router.push('/onboarding/body-model');
   };
 
   const handleBack = () => {
@@ -293,6 +344,7 @@ export default function BodyCompositionScreen() {
             variant="outline"
             size="large"
             style={styles.button}
+            disabled={isLoading}
           />
           <Button
             title="Next"
@@ -300,6 +352,8 @@ export default function BodyCompositionScreen() {
             variant="primary"
             size="large"
             style={styles.button}
+            isLoading={isLoading}
+            disabled={isLoading}
           />
         </View>
       </ScrollView>

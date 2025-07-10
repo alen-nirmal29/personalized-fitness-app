@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { Gender } from '@/types/user';
 
 export default function ProfileScreen() {
-  const { updateProfile } = useAuthStore();
+  const { updateProfile, user } = useAuthStore();
   
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
@@ -42,13 +42,20 @@ export default function ProfileScreen() {
   };
 
   const handleNext = async () => {
+    console.log('Profile handleNext called');
+    console.log('Current user:', user);
+    console.log('Form data:', { height, weight, gender });
+    
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
 
     setIsLoading(true);
     
     try {
+      console.log('Updating profile...');
+      
       // Update profile with the new data
       updateProfile({
         height: Number(height),
@@ -56,11 +63,16 @@ export default function ProfileScreen() {
         gender: gender as Gender,
       });
       
-      // Small delay to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 100));
+      console.log('Profile updated, waiting...');
       
-      // Navigate to goals page
-      router.push('/onboarding/goals');
+      // Small delay to ensure state is updated
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('Navigating to goals page...');
+      
+      // Navigate to goals page using replace to avoid back navigation issues
+      router.replace('/onboarding/goals');
+      
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to save profile information. Please try again.');
