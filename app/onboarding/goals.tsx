@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -10,9 +10,15 @@ import { useAuthStore } from '@/store/auth-store';
 import { FitnessGoal } from '@/types/user';
 
 export default function GoalsScreen() {
-  const { updateProfile, user } = useAuthStore();
+  const { updateProfile, user, setInOnboarding } = useAuthStore();
   const [selectedGoal, setSelectedGoal] = useState<FitnessGoal | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Set onboarding flag when component mounts
+  useEffect(() => {
+    console.log('Goals screen mounted, setting onboarding flag');
+    setInOnboarding(true);
+  }, [setInOnboarding]);
 
   const handleNext = async () => {
     console.log('Goals handleNext called');
@@ -23,6 +29,9 @@ export default function GoalsScreen() {
       setIsLoading(true);
       
       try {
+        // Ensure onboarding flag is set
+        setInOnboarding(true);
+        
         console.log('Updating fitness goal...');
         
         // Update profile with the selected goal
@@ -30,12 +39,7 @@ export default function GoalsScreen() {
           fitnessGoal: selectedGoal,
         });
         
-        console.log('Fitness goal updated, waiting...');
-        
-        // Small delay to ensure state is updated
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        console.log('Navigating to body-composition...');
+        console.log('Fitness goal updated, navigating to body-composition...');
         
         // Navigate to body composition page using replace
         router.replace('/onboarding/body-composition');

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -9,7 +9,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { BodyMeasurements } from '@/types/user';
 
 export default function BodyModelScreen() {
-  const { updateProfile, user } = useAuthStore();
+  const { updateProfile, user, setInOnboarding } = useAuthStore();
   const [measurements, setMeasurements] = useState<BodyMeasurements>({
     chest: 50,
     waist: 50,
@@ -19,6 +19,12 @@ export default function BodyModelScreen() {
     shoulders: 50,
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Set onboarding flag when component mounts
+  useEffect(() => {
+    console.log('Body model screen mounted, setting onboarding flag');
+    setInOnboarding(true);
+  }, [setInOnboarding]);
 
   const handleMeasurementsChange = (newMeasurements: Record<string, number>) => {
     setMeasurements(prev => ({
@@ -35,18 +41,16 @@ export default function BodyModelScreen() {
     setIsLoading(true);
     
     try {
+      // Ensure onboarding flag is set
+      setInOnboarding(true);
+      
       console.log('Updating current measurements...');
       
       updateProfile({
         currentMeasurements: measurements,
       });
       
-      console.log('Current measurements updated, waiting...');
-      
-      // Small delay to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      console.log('Navigating to specific-goals...');
+      console.log('Current measurements updated, navigating to specific-goals...');
       
       router.replace('/onboarding/specific-goals');
       

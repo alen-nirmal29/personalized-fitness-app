@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -12,7 +12,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { BodyComposition } from '@/types/user';
 
 export default function BodyCompositionScreen() {
-  const { updateProfile, user } = useAuthStore();
+  const { updateProfile, user, setInOnboarding } = useAuthStore();
   
   const [bodyWeight, setBodyWeight] = useState('');
   const [bodyFat, setBodyFat] = useState('');
@@ -30,6 +30,12 @@ export default function BodyCompositionScreen() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Set onboarding flag when component mounts
+  useEffect(() => {
+    console.log('Body composition screen mounted, setting onboarding flag');
+    setInOnboarding(true);
+  }, [setInOnboarding]);
+
   const handleNext = async () => {
     console.log('Body composition handleNext called');
     console.log('Current user:', user);
@@ -37,6 +43,9 @@ export default function BodyCompositionScreen() {
     setIsLoading(true);
     
     try {
+      // Set onboarding flag to prevent redirects
+      setInOnboarding(true);
+      
       const composition: BodyComposition = {};
       
       if (bodyFat && !isNaN(Number(bodyFat))) {
@@ -89,13 +98,9 @@ export default function BodyCompositionScreen() {
         bodyComposition: composition,
       });
       
-      console.log('Body composition updated, waiting...');
+      console.log('Body composition updated, navigating immediately...');
       
-      // Small delay to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      console.log('Navigating to body-model...');
-      
+      // Navigate immediately without delay
       router.replace('/onboarding/body-model');
       
     } catch (error) {

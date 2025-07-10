@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -10,13 +10,19 @@ import { useAuthStore } from '@/store/auth-store';
 import { Gender } from '@/types/user';
 
 export default function ProfileScreen() {
-  const { updateProfile, user } = useAuthStore();
+  const { updateProfile, user, setInOnboarding } = useAuthStore();
   
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
   const [gender, setGender] = useState<Gender | ''>('');
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ height?: string; weight?: string; gender?: string }>({});
+
+  // Set onboarding flag when component mounts
+  useEffect(() => {
+    console.log('Profile screen mounted, setting onboarding flag');
+    setInOnboarding(true);
+  }, [setInOnboarding]);
 
   const validateForm = () => {
     const newErrors: { height?: string; weight?: string; gender?: string } = {};
@@ -54,6 +60,9 @@ export default function ProfileScreen() {
     setIsLoading(true);
     
     try {
+      // Set onboarding flag to prevent redirects
+      setInOnboarding(true);
+      
       console.log('Updating profile...');
       
       // Update profile with the new data
@@ -63,12 +72,7 @@ export default function ProfileScreen() {
         gender: gender as Gender,
       });
       
-      console.log('Profile updated, waiting...');
-      
-      // Small delay to ensure state is updated
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      console.log('Navigating to goals page...');
+      console.log('Profile updated, navigating to goals page...');
       
       // Navigate to goals page using replace to avoid back navigation issues
       router.replace('/onboarding/goals');

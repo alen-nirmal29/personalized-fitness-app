@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { router } from 'expo-router';
@@ -10,9 +10,15 @@ import { useAuthStore } from '@/store/auth-store';
 import { SpecificGoal } from '@/types/user';
 
 export default function SpecificGoalsScreen() {
-  const { updateProfile, completeOnboarding, user } = useAuthStore();
+  const { updateProfile, completeOnboarding, user, setInOnboarding } = useAuthStore();
   const [selectedGoal, setSelectedGoal] = useState<SpecificGoal | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Set onboarding flag when component mounts
+  useEffect(() => {
+    console.log('Specific goals screen mounted, setting onboarding flag');
+    setInOnboarding(true);
+  }, [setInOnboarding]);
 
   const handleNext = async () => {
     console.log('Specific goals handleNext called');
@@ -33,12 +39,7 @@ export default function SpecificGoalsScreen() {
         
         completeOnboarding();
         
-        console.log('Onboarding completed, waiting...');
-        
-        // Small delay to ensure state is updated
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        console.log('Navigating to workout plan selection...');
+        console.log('Onboarding completed, navigating to workout plan selection...');
         
         router.replace('/workout/plan-selection');
         

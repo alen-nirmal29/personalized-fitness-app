@@ -5,12 +5,14 @@ import { AuthState, UserProfile } from '@/types/user';
 
 interface AuthStore extends AuthState {
   isInitialized: boolean;
+  isInOnboarding: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   updateProfile: (profile: Partial<UserProfile>) => void;
   completeOnboarding: () => void;
   initialize: () => void;
+  setInOnboarding: (inOnboarding: boolean) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -19,6 +21,7 @@ export const useAuthStore = create<AuthStore>()(
       isAuthenticated: false,
       isLoading: false,
       isInitialized: false,
+      isInOnboarding: false,
       user: null,
       error: null,
 
@@ -158,8 +161,14 @@ export const useAuthStore = create<AuthStore>()(
           
           set({
             user: updatedUser,
+            isInOnboarding: false,
           });
         }
+      },
+
+      setInOnboarding: (inOnboarding: boolean) => {
+        console.log('Setting onboarding state:', inOnboarding);
+        set({ isInOnboarding: inOnboarding });
       },
     }),
     {

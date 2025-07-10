@@ -9,7 +9,7 @@ import Button from '@/components/Button';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function WelcomeScreen() {
-  const { isAuthenticated, user, isInitialized } = useAuthStore();
+  const { isAuthenticated, user, isInitialized, isInOnboarding } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
@@ -24,6 +24,7 @@ export default function WelcomeScreen() {
     if (isReady && isAuthenticated && user) {
       console.log('User authenticated:', user);
       console.log('Has completed onboarding:', user.hasCompletedOnboarding);
+      console.log('Is in onboarding:', isInOnboarding);
       
       if (user.hasCompletedOnboarding) {
         console.log('Navigating to tabs');
@@ -31,15 +32,17 @@ export default function WelcomeScreen() {
         setTimeout(() => {
           router.replace('/(tabs)');
         }, 100);
-      } else {
+      } else if (!isInOnboarding) {
         console.log('Navigating to onboarding profile');
         // Use setTimeout to ensure navigation happens after render
         setTimeout(() => {
           router.replace('/onboarding/profile');
         }, 100);
+      } else {
+        console.log('User is in onboarding flow, not redirecting');
       }
     }
-  }, [isReady, isAuthenticated, user]);
+  }, [isReady, isAuthenticated, user, isInOnboarding]);
 
   const handleGetStarted = () => {
     router.push('/auth/signup');
