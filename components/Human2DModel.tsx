@@ -86,10 +86,10 @@ export default function Human2DModel({
   
   // Gesture handlers for rotation (mobile only)
   const gestureHandler = Platform.OS !== 'web' && useAnimatedGestureHandler ? useAnimatedGestureHandler({
-    onStart: (_, context) => {
+    onStart: (_: any, context: any) => {
       context.startRotation = rotation.value;
     },
-    onActive: (event, context) => {
+    onActive: (event: any, context: any) => {
       const deltaX = event.translationX;
       rotation.value = context.startRotation + deltaX * 0.01;
     },
@@ -394,9 +394,9 @@ export default function Human2DModel({
           strokeDasharray="3,3"
         />
         
-        <Text x={goalCenterX} y={280} textAnchor="middle" fill={Colors.dark.accent} fontSize="12" fontWeight="bold">
+        <text x={goalCenterX} y={280} textAnchor="middle" fill={Colors.dark.accent} fontSize="12" fontWeight="bold">
           Goal Body
-        </Text>
+        </text>
       </G>
     );
   };
@@ -1045,9 +1045,9 @@ export default function Human2DModel({
               
               {/* Current body label when showing comparison */}
               {showComparison && (
-                <Text x={centerX} y={280} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="12" fontWeight="bold">
+                <text x={centerX} y={280} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="12" fontWeight="bold">
                   Current Body
-                </Text>
+                </text>
               )}
             </AnimatedSvg>
           </TouchableOpacity>
