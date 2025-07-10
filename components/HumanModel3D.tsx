@@ -86,11 +86,12 @@ export default function HumanModel3D({
   const [sliderValue, setSliderValue] = useState(50);
   const [sliderPosition, setSliderPosition] = useState({ x: 0, y: 0 });
   
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const rendererRef = useRef<Renderer | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const humanMeshRef = useRef<THREE.Group | null>(null);
-  const anchorMeshesRef = useRef<THREE.Mesh[]>([]);
+  // Refs for 3D scene (not used in 2D implementation)
+  const sceneRef = useRef<any>(null);
+  const rendererRef = useRef<any>(null);
+  const cameraRef = useRef<any>(null);
+  const humanMeshRef = useRef<any>(null);
+  const anchorMeshesRef = useRef<any[]>([]);
   
   const proportions = calculateProportions(user);
   
@@ -217,11 +218,11 @@ export default function HumanModel3D({
       return acc;
     }, {} as Record<string, number>);
     
-    const shoulderWidth = 80 * (measurements.shoulders / 50) * proportions.genderFactor;
-    const chestWidth = 70 * (measurements.chest / 50) * proportions.weightFactor;
-    const armWidth = 18 * (measurements.arms / 50) * proportions.genderFactor;
-    const waistWidth = 60 * (measurements.waist / 50) * proportions.weightFactor;
-    const legWidth = 25 * (measurements.legs / 50) * proportions.genderFactor;
+    const shoulderWidth = 80 * (measurements.shoulders / 50);
+    const chestWidth = 70 * (measurements.chest / 50);
+    const armWidth = 18 * (measurements.arms / 50);
+    const waistWidth = 60 * (measurements.waist / 50);
+    const legWidth = 25 * (measurements.legs / 50);
     
     return (
       <Animated.View style={[styles.humanModel, rotationStyle]}>
@@ -229,9 +230,9 @@ export default function HumanModel3D({
         <View style={[
           styles.head,
           {
-            width: 45 * proportions.heightFactor,
-            height: 45 * proportions.heightFactor,
-            borderRadius: 22.5 * proportions.heightFactor,
+            width: 45,
+            height: 45,
+            borderRadius: 22.5,
           }
         ]} />
         
@@ -239,8 +240,8 @@ export default function HumanModel3D({
         <View style={[
           styles.neck,
           {
-            width: 12 * proportions.genderFactor,
-            height: 15 * proportions.heightFactor,
+            width: 12,
+            height: 15,
           }
         ]} />
         
@@ -258,7 +259,7 @@ export default function HumanModel3D({
           styles.leftArm,
           {
             width: armWidth,
-            height: 70 * proportions.heightFactor,
+            height: 70,
             left: -shoulderWidth/2 - armWidth/2,
           }
         ]} />
@@ -266,7 +267,7 @@ export default function HumanModel3D({
           styles.rightArm,
           {
             width: armWidth,
-            height: 70 * proportions.heightFactor,
+            height: 70,
             right: -shoulderWidth/2 - armWidth/2,
           }
         ]} />
@@ -276,7 +277,7 @@ export default function HumanModel3D({
           styles.chest,
           {
             width: chestWidth,
-            height: 80 * proportions.heightFactor,
+            height: 80,
           }
         ]} />
         
@@ -294,7 +295,7 @@ export default function HumanModel3D({
           styles.leftLeg,
           {
             width: legWidth,
-            height: 90 * proportions.heightFactor,
+            height: 90,
             left: -waistWidth/4,
           }
         ]} />
@@ -302,7 +303,7 @@ export default function HumanModel3D({
           styles.rightLeg,
           {
             width: legWidth,
-            height: 90 * proportions.heightFactor,
+            height: 90,
             right: -waistWidth/4,
           }
         ]} />
@@ -388,7 +389,7 @@ export default function HumanModel3D({
 }
 
 // Web and fallback component
-function WebFallback({ user }: { user?: UserProfile | null }) {
+export function WebFallback({ user }: { user?: UserProfile | null }) {
   return (
     <View style={styles.fallbackContainer}>
       <View style={styles.fallbackModel}>
@@ -415,33 +416,7 @@ function WebFallback({ user }: { user?: UserProfile | null }) {
   );
 }
 
-// Web fallback component
-function WebFallback({ user }: { user?: UserProfile | null }) {
-  return (
-    <View style={styles.fallbackContainer}>
-      <View style={styles.fallbackModel}>
-        <Text style={styles.fallbackTitle}>3D Body Model</Text>
-        <Text style={styles.fallbackSubtitle}>
-          {user?.gender === 'female' ? 'Female' : user?.gender === 'male' ? 'Male' : 'Human'} Model
-        </Text>
-        <Text style={styles.fallbackNote}>
-          Interactive 3D model available on mobile devices
-        </Text>
-        
-        <View style={styles.fallbackStats}>
-          <Text style={styles.fallbackStat}>Height: {user?.height || '--'} cm</Text>
-          <Text style={styles.fallbackStat}>Weight: {user?.weight || '--'} kg</Text>
-          {user?.bodyComposition?.bodyFat && (
-            <Text style={styles.fallbackStat}>Body Fat: {user.bodyComposition.bodyFat}%</Text>
-          )}
-          {user?.bodyComposition?.muscleMass && (
-            <Text style={styles.fallbackStat}>Muscle Mass: {user.bodyComposition.muscleMass}%</Text>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
+
 
 const styles = StyleSheet.create({
   container: {
