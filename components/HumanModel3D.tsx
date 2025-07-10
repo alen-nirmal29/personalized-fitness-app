@@ -405,11 +405,23 @@ export default function HumanModel3D({
     const points = generateWireframePoints();
     const lines = generateWireframeLines(points);
     
+    const animatedStyle = {
+      transform: [
+        {
+          rotateY: selectedAnchor ? '0deg' : rotationAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '360deg'],
+          }),
+        },
+      ],
+    };
+    
     return (
-      <Animated.View style={styles.wireframeContainer}>
+      <Animated.View style={[styles.wireframeContainer, animatedStyle]}>
         {lines.map((line, index) => {
-          const rotY = selectedAnchor ? rotation.y : autoRotation;
-          const rotX = rotation.x;
+          // Use static rotation values for wireframe calculation
+          const rotY = selectedAnchor ? 0 : 0; // Simplified for now
+          const rotX = 0;
           
           const start2D = project3DTo2D(line.start, rotX, rotY);
           const end2D = project3DTo2D(line.end, rotX, rotY);
