@@ -4,7 +4,7 @@ import { TrendingUp, Calendar, Scale, Ruler } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import Card from '@/components/Card';
 import ProgressBar from '@/components/ProgressBar';
-import HumanModel3D from '@/components/HumanModel3D';
+import Human2DModel from '@/components/Human2DModel';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutSessionStore } from '@/store/workout-session-store';
 
@@ -133,11 +133,11 @@ export default function ProgressScreen() {
           </Text>
         </View>
         
-        <HumanModel3D 
+        <Human2DModel 
           user={user}
           goalMeasurements={goalMeasurements}
           showComparison={true}
-          interactive={true}
+          interactive={false}
         />
       </View>
 
