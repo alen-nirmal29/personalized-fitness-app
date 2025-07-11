@@ -670,8 +670,8 @@ export default function Human2DModel({
           style={[
             styles.anchorPoint,
             {
-              left: anchor.x - 20,
-              top: anchor.y - 20,
+              left: anchor.x - 16,
+              top: anchor.y - 16,
               backgroundColor: anchor.color,
               transform: [{ scale: isActive ? 1.2 : 1 }],
               shadowColor: anchor.color,
@@ -696,14 +696,25 @@ export default function Human2DModel({
     
     const progress = (sliderValue - anchor.min) / (anchor.max - anchor.min);
     const screenWidth = Dimensions.get('window').width;
+    const sliderWidth = 120; // Reduced from 140
+    
+    // Calculate position to keep slider on screen and close to anchor
+    let sliderLeft = anchor.x - (sliderWidth / 2);
+    let sliderTop = anchor.y - 50; // Closer to anchor point
+    
+    // Ensure slider stays within screen bounds
+    if (sliderLeft < 10) sliderLeft = 10;
+    if (sliderLeft + sliderWidth > screenWidth - 10) sliderLeft = screenWidth - sliderWidth - 10;
+    if (sliderTop < 10) sliderTop = anchor.y + 30; // Move below if too high
     
     return (
       <View style={[
         styles.sliderContainer,
         {
-          left: Math.max(10, Math.min(screenWidth - 160, anchor.x - 70)),
-          top: anchor.y - 70,
+          left: sliderLeft,
+          top: sliderTop,
           borderColor: anchor.color,
+          width: sliderWidth,
         }
       ]}>
         <View style={styles.sliderHeader}>
@@ -894,9 +905,9 @@ const styles = StyleSheet.create({
   },
   anchorPoint: {
     position: 'absolute',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -909,24 +920,23 @@ const styles = StyleSheet.create({
   },
   anchorLabel: {
     color: '#ffffff',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   anchorPulse: {
     position: 'absolute',
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: '#ffffff',
     opacity: 0.4,
   },
   sliderContainer: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    borderRadius: 16,
-    padding: 16,
-    minWidth: 140,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    borderRadius: 12,
+    padding: 12,
     zIndex: 10,
     borderWidth: 2,
     shadowColor: '#000',
@@ -939,33 +949,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sliderLabel: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     textTransform: 'capitalize',
   },
   closeButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   sliderTrack: {
     width: '100%',
-    height: 6,
+    height: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 3,
-    marginBottom: 12,
+    borderRadius: 2,
+    marginBottom: 8,
     position: 'relative',
   },
   sliderProgress: {
@@ -979,21 +989,21 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   sliderButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   sliderButtonText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   sliderValue: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   instructions: {
