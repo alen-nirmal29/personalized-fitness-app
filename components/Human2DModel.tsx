@@ -694,16 +694,16 @@ export default function Human2DModel({
     
     const progress = (sliderValue - anchor.min) / (anchor.max - anchor.min);
     const screenWidth = Dimensions.get('window').width;
-    const sliderWidth = 120; // Reduced from 140
+    const sliderWidth = 100; // Further reduced size
     
     // Calculate position to keep slider on screen and close to anchor
     let sliderLeft = anchor.x - (sliderWidth / 2);
-    let sliderTop = anchor.y - 50; // Closer to anchor point
+    let sliderTop = anchor.y - 40; // Even closer to anchor point
     
-    // Ensure slider stays within screen bounds
-    if (sliderLeft < 10) sliderLeft = 10;
-    if (sliderLeft + sliderWidth > screenWidth - 10) sliderLeft = screenWidth - sliderWidth - 10;
-    if (sliderTop < 10) sliderTop = anchor.y + 30; // Move below if too high
+    // Ensure slider stays within screen bounds with better margins
+    if (sliderLeft < 15) sliderLeft = 15;
+    if (sliderLeft + sliderWidth > screenWidth - 15) sliderLeft = screenWidth - sliderWidth - 15;
+    if (sliderTop < 15) sliderTop = anchor.y + 25; // Move below if too high
     
     return (
       <View style={[
@@ -716,7 +716,7 @@ export default function Human2DModel({
         }
       ]}>
         <View style={styles.sliderHeader}>
-          <Text style={styles.sliderLabel}>{anchor.name}</Text>
+          <Text style={styles.sliderLabel}>{anchor.name.charAt(0).toUpperCase()}</Text>
           <TouchableOpacity onPress={closeSlider} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>×</Text>
           </TouchableOpacity>
@@ -756,64 +756,64 @@ export default function Human2DModel({
   return (
     <View style={styles.container}>
       <View style={styles.modelContainer}>
-        <TouchableOpacity onPress={toggleView} style={styles.svgContainer}>
-          <Svg width={showComparison ? "380" : "280"} height="340" viewBox={showComparison ? "0 0 380 340" : "0 0 280 340"}>
-            <Defs>
-              <LinearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor={isFemale ? '#FFF0F0' : '#F0F8FF'} />
-                <Stop offset="50%" stopColor={isFemale ? '#FFE4E1' : '#E6F3FF'} />
-                <Stop offset="100%" stopColor={isFemale ? '#FFCCCB' : '#B0E0E6'} />
-              </LinearGradient>
-              <LinearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor={isFemale ? '#A0522D' : '#8B4513'} />
-                <Stop offset="50%" stopColor={isFemale ? '#8B4513' : '#654321'} />
-                <Stop offset="100%" stopColor={isFemale ? '#654321' : '#4A2C17'} />
-              </LinearGradient>
-            </Defs>
-            
-            {/* Render the human body */}
-            {renderHumanBody()}
-            
-            {/* Render comparison if enabled */}
-            {showComparison ? renderComparisonWithDivider() : null}
-          </Svg>
-        </TouchableOpacity>
-        
-        {renderAnchorPoints()}
-        {renderSlider()}
-        
-        <View style={styles.viewToggle}>
+        {/* Header with view toggle */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>
+            {viewMode === 'front' ? 'Front View' : 'Back View'}
+          </Text>
           <TouchableOpacity onPress={toggleView} style={styles.viewButton}>
             <Text style={styles.viewButtonText}>
-              {viewMode === 'front' ? '🔄 Switch to Back View' : '🔄 Switch to Front View'}
+              {viewMode === 'front' ? '🔄 Back' : '🔄 Front'}
             </Text>
           </TouchableOpacity>
         </View>
         
-        <View style={styles.rotationHint}>
-          <Text style={styles.rotationText}>
-            👆 Tap to switch views • 🎯 Tap anchor points to adjust measurements
-          </Text>
+        {/* Main SVG container */}
+        <View style={styles.svgWrapper}>
+          <TouchableOpacity onPress={toggleView} style={styles.svgContainer}>
+            <Svg width={showComparison ? "360" : "260"} height="320" viewBox={showComparison ? "0 0 360 320" : "0 0 260 320"}>
+              <Defs>
+                <LinearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <Stop offset="0%" stopColor={isFemale ? '#FFF0F0' : '#F0F8FF'} />
+                  <Stop offset="50%" stopColor={isFemale ? '#FFE4E1' : '#E6F3FF'} />
+                  <Stop offset="100%" stopColor={isFemale ? '#FFCCCB' : '#B0E0E6'} />
+                </LinearGradient>
+                <LinearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <Stop offset="0%" stopColor={isFemale ? '#A0522D' : '#8B4513'} />
+                  <Stop offset="50%" stopColor={isFemale ? '#8B4513' : '#654321'} />
+                  <Stop offset="100%" stopColor={isFemale ? '#654321' : '#4A2C17'} />
+                </LinearGradient>
+              </Defs>
+              
+              {/* Render the human body */}
+              {renderHumanBody()}
+              
+              {/* Render comparison if enabled */}
+              {showComparison ? renderComparisonWithDivider() : null}
+            </Svg>
+          </TouchableOpacity>
+          
+          {renderAnchorPoints()}
+          {renderSlider()}
         </View>
         
+        {/* Comparison legend */}
         {showComparison && (
           <View style={styles.comparisonLegend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendColor, { backgroundColor: isFemale ? '#FFB6C1' : '#87CEEB' }]} />
-              <Text style={styles.legendText}>Current Body</Text>
+              <Text style={styles.legendText}>Current</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendColor, { backgroundColor: Colors.dark.accent, opacity: 0.6 }]} />
-              <Text style={styles.legendText}>Goal Body</Text>
+              <Text style={styles.legendText}>Goal</Text>
             </View>
           </View>
         )}
         
+        {/* Instructions */}
         <View style={styles.instructions}>
-          <Text style={styles.instructionTitle}>Body Model Controls</Text>
-          <Text style={styles.instructionText}>🔄 Tap to switch front/back views</Text>
-          <Text style={styles.instructionText}>🎯 Tap colored points to adjust measurements</Text>
-          {showComparison && <Text style={styles.instructionText}>📊 Compare current vs goal body shape</Text>}
+          <Text style={styles.instructionText}>🎯 Tap colored points to adjust • 🔄 Tap model to switch views</Text>
         </View>
       </View>
     </View>
@@ -823,187 +823,176 @@ export default function Human2DModel({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 520,
-    borderRadius: 24,
+    height: 500,
+    borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: '#0A1628',
+    backgroundColor: '#0F1419',
     position: 'relative',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.06)',
   },
   modelContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'linear-gradient(135deg, #0A1628 0%, #1A2332 100%)',
+    backgroundColor: '#0F1419',
     position: 'relative',
-    paddingVertical: 20,
   },
-  svgContainer: {
-    justifyContent: 'center',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    borderRadius: 16,
-    padding: 12,
-    marginVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
-  viewToggle: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    zIndex: 6,
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   viewButton: {
     backgroundColor: Colors.dark.accent,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 24,
-    shadowColor: Colors.dark.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   viewButtonText: {
     color: '#ffffff',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
-  rotationHint: {
-    position: 'absolute',
-    top: 20,
-    left: 20,
-    right: 120,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+  svgWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    paddingVertical: 10,
+  },
+  svgContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.01)',
     borderRadius: 12,
-    padding: 12,
-    zIndex: 5,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  rotationText: {
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontSize: 11,
-    textAlign: 'left',
-    fontWeight: '500',
-    lineHeight: 14,
+    padding: 8,
   },
   comparisonLegend: {
-    position: 'absolute',
-    top: 80,
-    left: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    marginHorizontal: 20,
     borderRadius: 12,
-    padding: 16,
-    zIndex: 5,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    minWidth: 140,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    gap: 20,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
   },
   legendColor: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    marginRight: 10,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginRight: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   legendText: {
-    color: 'rgba(255, 255, 255, 0.95)',
-    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 11,
     fontWeight: '600',
   },
   anchorPoint: {
     position: 'absolute',
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 3,
+    borderWidth: 2.5,
     borderColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 6,
   },
   anchorLabel: {
     color: '#ffffff',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowColor: 'rgba(0, 0, 0, 0.6)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   anchorPulse: {
     position: 'absolute',
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 2,
     borderColor: '#ffffff',
     opacity: 0.3,
   },
   sliderContainer: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.96)',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    borderRadius: 12,
+    padding: 10,
     zIndex: 10,
     borderWidth: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 15,
-    minWidth: 140,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 12,
+    minWidth: 100,
   },
   sliderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   sliderLabel: {
     color: '#ffffff',
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '700',
-    textTransform: 'capitalize',
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   closeButton: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '700',
   },
   sliderTrack: {
     width: '100%',
-    height: 6,
+    height: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 3,
-    marginBottom: 12,
+    borderRadius: 2,
+    marginBottom: 8,
     position: 'relative',
   },
   sliderProgress: {
     height: '100%',
-    borderRadius: 3,
+    borderRadius: 2,
   },
   sliderControls: {
     flexDirection: 'row',
@@ -1012,9 +1001,9 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   sliderButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1023,40 +1012,28 @@ const styles = StyleSheet.create({
   },
   sliderButtonText: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
   },
   sliderValue: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
-    minWidth: 40,
+    minWidth: 30,
     textAlign: 'center',
   },
   instructions: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  instructionTitle: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 12,
-    textAlign: 'center',
-    letterSpacing: 0.5,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
   },
   instructionText: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 12,
-    marginBottom: 6,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 11,
     fontWeight: '500',
-    lineHeight: 16,
+    textAlign: 'center',
+    lineHeight: 14,
   },
 });
