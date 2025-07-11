@@ -196,10 +196,10 @@ export const useWorkoutSessionStore = create<WorkoutSessionStore>()(
           
           if (workoutStore.currentPlan) {
             // Calculate progress based on completed workouts vs total plan workouts
-            const totalPlanWorkouts = workoutStore.currentPlan.schedule.filter(day => !day.restDay).length;
+            const totalPlanWorkouts = workoutStore.currentPlan.schedule.filter((day: any) => !day.restDay).length;
             const planWorkouts = completedWorkouts.filter(w => 
               w.workoutName.includes(workoutStore.currentPlan!.name) || 
-              workoutStore.currentPlan!.schedule.some(day => day.name.includes(w.workoutName))
+              workoutStore.currentPlan!.schedule.some((day: any) => day.name.includes(w.workoutName))
             ).length + 1; // +1 for current workout
             
             const progressPercentage = Math.min((planWorkouts / totalPlanWorkouts) * 100, 100);

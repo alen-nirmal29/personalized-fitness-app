@@ -996,9 +996,9 @@ export default function Human2DModel({
                   <Stop offset="100%" stopColor={isFemale ? '#654321' : '#4A2C17'} />
                 </LinearGradient>
                 <LinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <Stop offset="0%" stopColor={Colors.dark.accent} opacity={0.3} />
-                  <Stop offset="50%" stopColor={Colors.dark.accent} opacity={0.2} />
-                  <Stop offset="100%" stopColor={Colors.dark.accent} opacity={0.1} />
+                  <Stop offset="0%" stopColor={Colors.dark.accent} stopOpacity={0.3} />
+                  <Stop offset="50%" stopColor={Colors.dark.accent} stopOpacity={0.2} />
+                  <Stop offset="100%" stopColor={Colors.dark.accent} stopOpacity={0.1} />
                 </LinearGradient>
               </Defs>
               

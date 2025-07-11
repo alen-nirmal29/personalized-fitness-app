@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { TrendingUp, Calendar, Scale, Ruler } from 'lucide-react-native';
+import { SpecificGoal } from '@/types/user';
 import Colors from '@/constants/colors';
 import Card from '@/components/Card';
 import ProgressBar from '@/components/ProgressBar';
@@ -85,7 +86,7 @@ export default function ProgressScreen() {
         waist: user.currentMeasurements.waist,
         legs: user.currentMeasurements.legs,
       };
-      generateProgressMeasurements(currentMeasurements, currentPlan.specificGoal, planProgress);
+      generateProgressMeasurements(currentMeasurements, currentPlan.specificGoal as SpecificGoal, planProgress);
     }
   }, [currentPlan, planProgress, user?.currentMeasurements, progressMeasurements, generateProgressMeasurements]);
   
