@@ -77,7 +77,7 @@ export default function Human2DModel({
         value: measurements.shoulders,
         min: 20,
         max: 100,
-        color: '#FF6B6B',
+        color: '#FF7675',
       },
       {
         name: 'chest',
@@ -86,7 +86,7 @@ export default function Human2DModel({
         value: measurements.chest,
         min: 20,
         max: 100,
-        color: '#4ECDC4',
+        color: '#00CEC9',
       },
       {
         name: 'arms',
@@ -95,7 +95,7 @@ export default function Human2DModel({
         value: measurements.arms,
         min: 20,
         max: 100,
-        color: '#45B7D1',
+        color: '#74B9FF',
       },
       {
         name: 'waist',
@@ -104,7 +104,7 @@ export default function Human2DModel({
         value: measurements.waist,
         min: 20,
         max: 100,
-        color: '#F9CA24',
+        color: '#FDCB6E',
       },
       {
         name: 'legs',
@@ -113,7 +113,7 @@ export default function Human2DModel({
         value: measurements.legs,
         min: 20,
         max: 100,
-        color: '#6C5CE7',
+        color: '#A29BFE',
       },
     ];
   }, [measurements, centerX, bodyProps, viewMode]);
@@ -166,8 +166,8 @@ export default function Human2DModel({
           <Path
             d={`M ${centerX - 20} 28 Q ${centerX} 18 ${centerX + 20} 28 Q ${centerX + 18} 35 ${centerX + 10} 30 Q ${centerX} 22 ${centerX - 10} 30 Q ${centerX - 18} 35 ${centerX - 20} 28`}
             fill="url(#hairGradient)"
-            stroke={isFemale ? '#654321' : '#4A2C17'}
-            strokeWidth="1"
+            stroke={isFemale ? '#8B4513' : '#654321'}
+            strokeWidth="1.5"
           />
         ) : (
           <Ellipse
@@ -176,8 +176,8 @@ export default function Human2DModel({
             rx={22}
             ry={18}
             fill="url(#hairGradient)"
-            stroke={isFemale ? '#654321' : '#4A2C17'}
-            strokeWidth="1"
+            stroke={isFemale ? '#8B4513' : '#654321'}
+            strokeWidth="1.5"
           />
         )}
         
@@ -187,14 +187,16 @@ export default function Human2DModel({
             <Path
               d={`M ${centerX - 15} 32 Q ${centerX - 25} 45 ${centerX - 20} 60 Q ${centerX - 15} 65 ${centerX - 10} 60 Q ${centerX - 5} 55 ${centerX - 10} 50`}
               fill="url(#hairGradient)"
-              stroke={isFemale ? '#654321' : '#4A2C17'}
-              strokeWidth="1"
+              stroke="#8B4513"
+              strokeWidth="1.2"
+              opacity={0.9}
             />
             <Path
               d={`M ${centerX + 15} 32 Q ${centerX + 25} 45 ${centerX + 20} 60 Q ${centerX + 15} 65 ${centerX + 10} 60 Q ${centerX + 5} 55 ${centerX + 10} 50`}
               fill="url(#hairGradient)"
-              stroke={isFemale ? '#654321' : '#4A2C17'}
-              strokeWidth="1"
+              stroke="#8B4513"
+              strokeWidth="1.2"
+              opacity={0.9}
             />
           </>
         )}
@@ -234,7 +236,7 @@ export default function Human2DModel({
         
         {/* Chest/breast definition based on gender and view */}
         {!isFemale && !isBackView && (
-          <G>
+          <G opacity={0.4}>
             <Ellipse
               cx={centerX - 12}
               cy={105}
@@ -242,8 +244,7 @@ export default function Human2DModel({
               ry={6}
               fill="none"
               stroke="#87CEEB"
-              strokeWidth="1"
-              opacity={0.6}
+              strokeWidth="1.5"
             />
             <Ellipse
               cx={centerX + 12}
@@ -252,8 +253,7 @@ export default function Human2DModel({
               ry={6}
               fill="none"
               stroke="#87CEEB"
-              strokeWidth="1"
-              opacity={0.6}
+              strokeWidth="1.5"
             />
           </G>
         )}
@@ -265,18 +265,18 @@ export default function Human2DModel({
               cy={108}
               rx={8}
               ry={10}
-              fill="rgba(255, 182, 193, 0.3)"
+              fill="rgba(255, 182, 193, 0.2)"
               stroke="#FFB6C1"
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
             <Ellipse
               cx={centerX + 10}
               cy={108}
               rx={8}
               ry={10}
-              fill="rgba(255, 182, 193, 0.3)"
+              fill="rgba(255, 182, 193, 0.2)"
               stroke="#FFB6C1"
-              strokeWidth="1"
+              strokeWidth="1.5"
             />
           </G>
         )}
@@ -294,22 +294,21 @@ export default function Human2DModel({
         
         {/* Abs definition for male front view */}
         {!isFemale && !isBackView && (
-          <G opacity={0.4}>
-            <Line x1={centerX} y1={140} x2={centerX} y2={180} stroke="#87CEEB" strokeWidth="1" />
-            <Line x1={centerX - 8} y1={145} x2={centerX + 8} y2={145} stroke="#87CEEB" strokeWidth="1" />
-            <Line x1={centerX - 8} y1={155} x2={centerX + 8} y2={155} stroke="#87CEEB" strokeWidth="1" />
-            <Line x1={centerX - 8} y1={165} x2={centerX + 8} y2={165} stroke="#87CEEB" strokeWidth="1" />
-            <Line x1={centerX - 8} y1={175} x2={centerX + 8} y2={175} stroke="#87CEEB" strokeWidth="1" />
+          <G opacity={0.3}>
+            <Line x1={centerX} y1={140} x2={centerX} y2={180} stroke="#87CEEB" strokeWidth="1.5" />
+            <Line x1={centerX - 10} y1={148} x2={centerX + 10} y2={148} stroke="#87CEEB" strokeWidth="1" />
+            <Line x1={centerX - 10} y1={158} x2={centerX + 10} y2={158} stroke="#87CEEB" strokeWidth="1" />
+            <Line x1={centerX - 10} y1={168} x2={centerX + 10} y2={168} stroke="#87CEEB" strokeWidth="1" />
           </G>
         )}
         
         {/* Back muscles for back view */}
         {isBackView && (
-          <G opacity={0.4}>
-            <Line x1={centerX} y1={90} x2={centerX} y2={170} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1" />
-            <Path d={`M ${centerX - 15} 100 Q ${centerX} 95 ${centerX + 15} 100`} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1" fill="none" />
-            <Path d={`M ${centerX - 20} 120 Q ${centerX} 115 ${centerX + 20} 120`} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1" fill="none" />
-            <Path d={`M ${centerX - 18} 140 Q ${centerX} 135 ${centerX + 18} 140`} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1" fill="none" />
+          <G opacity={0.3}>
+            <Line x1={centerX} y1={90} x2={centerX} y2={170} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1.5" />
+            <Path d={`M ${centerX - 18} 105 Q ${centerX} 100 ${centerX + 18} 105`} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1.2" fill="none" />
+            <Path d={`M ${centerX - 22} 125 Q ${centerX} 120 ${centerX + 22} 125`} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1.2" fill="none" />
+            <Path d={`M ${centerX - 20} 145 Q ${centerX} 140 ${centerX + 20} 145`} stroke={isFemale ? '#FFB6C1' : '#87CEEB'} strokeWidth="1.2" fill="none" />
           </G>
         )}
     
@@ -450,27 +449,26 @@ export default function Human2DModel({
     
         {/* Face features - only for front view */}
         {!isBackView && (
-          <G>
+          <G opacity={0.8}>
             {/* Eyes */}
-            <Ellipse cx={centerX - 7} cy={40} rx={3} ry={2} fill="white" />
-            <Circle cx={centerX - 7} cy={40} r={2} fill="#4A90E2" />
-            <Circle cx={centerX - 7} cy={40} r={1} fill="#333" />
-            <Ellipse cx={centerX + 7} cy={40} rx={3} ry={2} fill="white" />
-            <Circle cx={centerX + 7} cy={40} r={2} fill="#4A90E2" />
-            <Circle cx={centerX + 7} cy={40} r={1} fill="#333" />
+            <Ellipse cx={centerX - 6} cy={42} rx={2.5} ry={1.8} fill="white" opacity={0.9} />
+            <Circle cx={centerX - 6} cy={42} r={1.5} fill="#4A90E2" />
+            <Circle cx={centerX - 6} cy={42} r={0.8} fill="#333" />
+            <Ellipse cx={centerX + 6} cy={42} rx={2.5} ry={1.8} fill="white" opacity={0.9} />
+            <Circle cx={centerX + 6} cy={42} r={1.5} fill="#4A90E2" />
+            <Circle cx={centerX + 6} cy={42} r={0.8} fill="#333" />
             
             {/* Eyebrows */}
-            <Path d={`M ${centerX - 10} 36 Q ${centerX - 7} 35 ${centerX - 4} 36`} stroke="#333" strokeWidth="1.5" fill="none" />
-            <Path d={`M ${centerX + 4} 36 Q ${centerX + 7} 35 ${centerX + 10} 36`} stroke="#333" strokeWidth="1.5" fill="none" />
+            <Path d={`M ${centerX - 9} 38 Q ${centerX - 6} 37 ${centerX - 3} 38`} stroke="#555" strokeWidth="1.2" fill="none" opacity={0.7} />
+            <Path d={`M ${centerX + 3} 38 Q ${centerX + 6} 37 ${centerX + 9} 38`} stroke="#555" strokeWidth="1.2" fill="none" opacity={0.7} />
             
             {/* Nose */}
-            <Path d={`M ${centerX} 45 L ${centerX - 1} 48 L ${centerX} 50 L ${centerX + 1} 48 Z`} fill="rgba(0,0,0,0.1)" />
-            <Circle cx={centerX - 2} cy={49} r={1} fill="rgba(0,0,0,0.2)" />
-            <Circle cx={centerX + 2} cy={49} r={1} fill="rgba(0,0,0,0.2)" />
+            <Path d={`M ${centerX} 47 L ${centerX - 0.8} 50 L ${centerX} 52 L ${centerX + 0.8} 50 Z`} fill="rgba(0,0,0,0.08)" />
+            <Circle cx={centerX - 1.5} cy={50.5} r={0.8} fill="rgba(0,0,0,0.15)" />
+            <Circle cx={centerX + 1.5} cy={50.5} r={0.8} fill="rgba(0,0,0,0.15)" />
             
             {/* Mouth */}
-            <Path d={`M ${centerX - 5} 52 Q ${centerX} 55 ${centerX + 5} 52`} stroke="#D2691E" strokeWidth="2" fill="none" />
-            <Path d={`M ${centerX - 3} 53 Q ${centerX} 54 ${centerX + 3} 53`} stroke="#FFB6C1" strokeWidth="1" fill="none" />
+            <Path d={`M ${centerX - 4} 54 Q ${centerX} 56 ${centerX + 4} 54`} stroke="#CD5C5C" strokeWidth="1.5" fill="none" opacity={0.8} />
           </G>
         )}
       </G>
@@ -647,11 +645,11 @@ export default function Human2DModel({
         </G>
         
         {/* Labels */}
-        <SvgText x={centerX} y={340} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="12" fontWeight="bold">
-          Current ({viewMode === 'front' ? 'Front' : 'Back'})
+        <SvgText x={centerX} y={325} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="13" fontWeight="bold">
+          Current
         </SvgText>
-        <SvgText x={goalCenterX} y={340} textAnchor="middle" fill={Colors.dark.accent} fontSize="12" fontWeight="bold">
-          Goal ({viewMode === 'front' ? 'Front' : 'Back'})
+        <SvgText x={goalCenterX} y={325} textAnchor="middle" fill={Colors.dark.accent} fontSize="13" fontWeight="bold">
+          Goal
         </SvgText>
       </G>
     );
@@ -759,14 +757,16 @@ export default function Human2DModel({
     <View style={styles.container}>
       <View style={styles.modelContainer}>
         <TouchableOpacity onPress={toggleView} style={styles.svgContainer}>
-          <Svg width={showComparison ? "400" : "300"} height="360" viewBox={showComparison ? "0 0 400 360" : "0 0 300 360"}>
+          <Svg width={showComparison ? "380" : "280"} height="340" viewBox={showComparison ? "0 0 380 340" : "0 0 280 340"}>
             <Defs>
               <LinearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor={isFemale ? '#FFE4E1' : '#E6F3FF'} />
+                <Stop offset="0%" stopColor={isFemale ? '#FFF0F0' : '#F0F8FF'} />
+                <Stop offset="50%" stopColor={isFemale ? '#FFE4E1' : '#E6F3FF'} />
                 <Stop offset="100%" stopColor={isFemale ? '#FFCCCB' : '#B0E0E6'} />
               </LinearGradient>
               <LinearGradient id="hairGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <Stop offset="0%" stopColor={isFemale ? '#8B4513' : '#654321'} />
+                <Stop offset="0%" stopColor={isFemale ? '#A0522D' : '#8B4513'} />
+                <Stop offset="50%" stopColor={isFemale ? '#8B4513' : '#654321'} />
                 <Stop offset="100%" stopColor={isFemale ? '#654321' : '#4A2C17'} />
               </LinearGradient>
             </Defs>
@@ -810,10 +810,10 @@ export default function Human2DModel({
         )}
         
         <View style={styles.instructions}>
-          <Text style={styles.instructionText}>• Realistic 2D human model with front and back views</Text>
-          <Text style={styles.instructionText}>• Tap the switch button to toggle between front/back views</Text>
-          <Text style={styles.instructionText}>• Tap colored anchor points to adjust measurements (20-100)</Text>
-          <Text style={styles.instructionText}>• Enhanced comparison view with clear divider line</Text>
+          <Text style={styles.instructionTitle}>Body Model Controls</Text>
+          <Text style={styles.instructionText}>🔄 Tap to switch front/back views</Text>
+          <Text style={styles.instructionText}>🎯 Tap colored points to adjust measurements</Text>
+          {showComparison && <Text style={styles.instructionText}>📊 Compare current vs goal body shape</Text>}
         </View>
       </View>
     </View>
@@ -823,159 +823,182 @@ export default function Human2DModel({
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 500,
-    borderRadius: 20,
+    height: 520,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: Colors.dark.background,
+    backgroundColor: '#0A1628',
     position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   modelContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(10, 25, 40, 0.9)',
+    backgroundColor: 'linear-gradient(135deg, #0A1628 0%, #1A2332 100%)',
     position: 'relative',
+    paddingVertical: 20,
   },
   svgContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    borderRadius: 16,
+    padding: 12,
+    marginVertical: 8,
   },
   viewToggle: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 20,
+    right: 20,
     zIndex: 6,
   },
   viewButton: {
     backgroundColor: Colors.dark.accent,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 24,
+    shadowColor: Colors.dark.accent,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   viewButtonText: {
     color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
   rotationHint: {
     position: 'absolute',
-    top: 16,
-    left: 16,
-    right: 80,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    borderRadius: 8,
-    padding: 8,
+    top: 20,
+    left: 20,
+    right: 120,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    borderRadius: 12,
+    padding: 12,
     zIndex: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   rotationText: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 12,
-    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontSize: 11,
+    textAlign: 'left',
     fontWeight: '500',
+    lineHeight: 14,
   },
   comparisonLegend: {
     position: 'absolute',
-    top: 60,
-    left: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 8,
-    padding: 12,
+    top: 80,
+    left: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    borderRadius: 12,
+    padding: 16,
     zIndex: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    minWidth: 140,
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   legendColor: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   legendText: {
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontSize: 11,
-    fontWeight: '500',
+    color: 'rgba(255, 255, 255, 0.95)',
+    fontSize: 12,
+    fontWeight: '600',
   },
   anchorPoint: {
     position: 'absolute',
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: '#ffffff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 8,
   },
   anchorLabel: {
     color: '#ffffff',
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontWeight: '800',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   anchorPulse: {
     position: 'absolute',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     borderWidth: 2,
     borderColor: '#ffffff',
-    opacity: 0.4,
+    opacity: 0.3,
   },
   sliderContainer: {
     position: 'absolute',
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.96)',
+    borderRadius: 16,
+    padding: 16,
     zIndex: 10,
     borderWidth: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 15,
+    minWidth: 140,
   },
   sliderHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   sliderLabel: {
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '700',
     textTransform: 'capitalize',
+    letterSpacing: 0.5,
   },
   closeButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   closeButtonText: {
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '700',
   },
   sliderTrack: {
     width: '100%',
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 2,
-    marginBottom: 8,
+    height: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 3,
+    marginBottom: 12,
     position: 'relative',
   },
   sliderProgress: {
@@ -989,39 +1012,51 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   sliderButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   sliderButtonText: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
   },
   sliderValue: {
     color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '700',
+    minWidth: 40,
+    textAlign: 'center',
   },
   instructions: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    borderRadius: 12,
-    padding: 16,
+    bottom: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    borderRadius: 16,
+    padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  instructionTitle: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
   instructionText: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: 'rgba(255, 255, 255, 0.9)',
     fontSize: 12,
     marginBottom: 6,
-    fontWeight: '400',
+    fontWeight: '500',
     lineHeight: 16,
   },
 });
