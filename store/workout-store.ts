@@ -338,19 +338,28 @@ interface WorkoutStore {
   recommendedPlans: WorkoutPlan[];
   isLoading: boolean;
   error: string | null;
+  completedWorkouts: string[]; // Array of completed workout IDs
+  workoutProgress: Record<string, number>; // Progress percentage for each workout plan
+  progressMeasurements: Record<string, number> | null; // Post-workout measurements
   
   setCurrentPlan: (plan: WorkoutPlan) => void;
   generateWorkoutPlan: (specificGoal: SpecificGoal, duration: string, userDetails?: any) => Promise<void>;
   getRecommendedPlans: (specificGoal: SpecificGoal, userDetails?: any) => Promise<void>;
+  completeWorkout: (workoutId: string) => void;
+  updateWorkoutProgress: (planId: string, progress: number) => void;
+  generateProgressMeasurements: (originalMeasurements: Record<string, number>, goal: SpecificGoal, progress: number) => void;
 }
 
 export const useWorkoutStore = create<WorkoutStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentPlan: null,
       recommendedPlans: [],
       isLoading: false,
       error: null,
+      completedWorkouts: [],
+      workoutProgress: {},
+      progressMeasurements: null,
       
       setCurrentPlan: (plan: WorkoutPlan) => {
         set({ currentPlan: plan });
@@ -616,6 +625,80 @@ export const useWorkoutStore = create<WorkoutStore>()(
             isLoading: false,
           });
         }
+      },
+      
+      completeWorkout: (workoutId: string) => {
+        const { completedWorkouts } = get();
+        if (!completedWorkouts.includes(workoutId)) {
+          set({ 
+            completedWorkouts: [...completedWorkouts, workoutId] 
+          });
+        }
+      },
+      
+      updateWorkoutProgress: (planId: string, progress: number) => {
+        const { workoutProgress } = get();
+        set({ 
+          workoutProgress: { 
+            ...workoutProgress, 
+            [planId]: progress 
+          } 
+        });
+      },
+      
+      generateProgressMeasurements: (originalMeasurements: Record<string, number>, goal: SpecificGoal, progress: number) => {
+        // Calculate progress-based measurements based on goal and completion percentage
+        const progressFactor = progress / 100;
+        let progressMeasurements: Record<string, number> = {};
+        
+        switch (goal) {
+          case 'build_muscle':
+            progressMeasurements = {
+              shoulders: originalMeasurements.shoulders + (15 * progressFactor), // +15% max
+              chest: originalMeasurements.chest + (20 * progressFactor), // +20% max
+              arms: originalMeasurements.arms + (25 * progressFactor), // +25% max
+              waist: originalMeasurements.waist + (5 * progressFactor), // +5% max
+              legs: originalMeasurements.legs + (18 * progressFactor), // +18% max
+            };
+            break;
+            
+          case 'weight_loss':
+            progressMeasurements = {
+              shoulders: originalMeasurements.shoulders - (5 * progressFactor), // -5% max
+              chest: originalMeasurements.chest - (8 * progressFactor), // -8% max
+              arms: originalMeasurements.arms - (3 * progressFactor), // -3% max
+              waist: originalMeasurements.waist - (20 * progressFactor), // -20% max
+              legs: originalMeasurements.legs - (10 * progressFactor), // -10% max
+            };
+            break;
+            
+          case 'increase_strength':
+            progressMeasurements = {
+              shoulders: originalMeasurements.shoulders + (12 * progressFactor), // +12% max
+              chest: originalMeasurements.chest + (15 * progressFactor), // +15% max
+              arms: originalMeasurements.arms + (20 * progressFactor), // +20% max
+              waist: originalMeasurements.waist + (3 * progressFactor), // +3% max
+              legs: originalMeasurements.legs + (15 * progressFactor), // +15% max
+            };
+            break;
+            
+          default:
+            // General fitness improvement
+            progressMeasurements = {
+              shoulders: originalMeasurements.shoulders + (8 * progressFactor),
+              chest: originalMeasurements.chest + (10 * progressFactor),
+              arms: originalMeasurements.arms + (12 * progressFactor),
+              waist: originalMeasurements.waist - (5 * progressFactor),
+              legs: originalMeasurements.legs + (10 * progressFactor),
+            };
+        }
+        
+        // Ensure measurements stay within reasonable bounds (20-100)
+        Object.keys(progressMeasurements).forEach(key => {
+          progressMeasurements[key] = Math.max(20, Math.min(100, progressMeasurements[key]));
+        });
+        
+        set({ progressMeasurements });
       },
     }),
     {

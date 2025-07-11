@@ -7,10 +7,12 @@ import ProgressBar from '@/components/ProgressBar';
 import Human2DModel from '@/components/Human2DModel';
 import { useAuthStore } from '@/store/auth-store';
 import { useWorkoutSessionStore } from '@/store/workout-session-store';
+import { useWorkoutStore } from '@/store/workout-store';
 
 export default function ProgressScreen() {
   const { user } = useAuthStore();
   const { workoutStats, completedWorkouts } = useWorkoutSessionStore();
+  const { currentPlan, workoutProgress, progressMeasurements, generateProgressMeasurements } = useWorkoutStore();
 
   // Mock goal measurements for demonstration
   const goalMeasurements = {
@@ -70,6 +72,23 @@ export default function ProgressScreen() {
   const weightProgress = getWeightProgress();
   const bodyFatProgress = getBodyFatProgress();
   
+  // Calculate overall workout plan progress
+  const planProgress = currentPlan ? (workoutProgress[currentPlan.id] || 0) : 0;
+  
+  // Generate progress measurements if we have a current plan and progress
+  React.useEffect(() => {
+    if (currentPlan && planProgress > 0 && user?.currentMeasurements && !progressMeasurements) {
+      const currentMeasurements = {
+        shoulders: user.currentMeasurements.shoulders,
+        chest: user.currentMeasurements.chest,
+        arms: user.currentMeasurements.arms,
+        waist: user.currentMeasurements.waist,
+        legs: user.currentMeasurements.legs,
+      };
+      generateProgressMeasurements(currentMeasurements, currentPlan.specificGoal, planProgress);
+    }
+  }, [currentPlan, planProgress, user?.currentMeasurements, progressMeasurements, generateProgressMeasurements]);
+  
   // Mock measurement progress
   const chestProgress = getMeasurementProgress('chest', 90, 100);
   const waistProgress = getMeasurementProgress('waist', 90, 80);
@@ -125,21 +144,40 @@ export default function ProgressScreen() {
 
       <Text style={styles.sectionTitle}>Body Transformation</Text>
       
-      <View style={styles.modelContainer}>
-        <View style={styles.modelHeader}>
-          <Text style={styles.modelTitle}>Current vs. Goal</Text>
-          <Text style={styles.modelSubtitle}>
-            Compare your current body model with your goal
-          </Text>
+      {/* Show progress comparison if we have progress measurements */}
+      {progressMeasurements && planProgress > 0 ? (
+        <View style={styles.modelContainer}>
+          <View style={styles.modelHeader}>
+            <Text style={styles.modelTitle}>Your Progress ({Math.round(planProgress)}% Complete)</Text>
+            <Text style={styles.modelSubtitle}>
+              See how your body has transformed after completing {Math.round(planProgress)}% of your workout plan
+            </Text>
+          </View>
+          
+          <Human2DModel 
+            user={user}
+            progressMeasurements={progressMeasurements}
+            showProgress={true}
+            interactive={false}
+          />
         </View>
-        
-        <Human2DModel 
-          user={user}
-          goalMeasurements={goalMeasurements}
-          showComparison={true}
-          interactive={false}
-        />
-      </View>
+      ) : (
+        <View style={styles.modelContainer}>
+          <View style={styles.modelHeader}>
+            <Text style={styles.modelTitle}>Current vs. Goal</Text>
+            <Text style={styles.modelSubtitle}>
+              Compare your current body model with your goal
+            </Text>
+          </View>
+          
+          <Human2DModel 
+            user={user}
+            goalMeasurements={goalMeasurements}
+            showComparison={true}
+            interactive={false}
+          />
+        </View>
+      )}
 
       <Text style={styles.sectionTitle}>Measurements Progress</Text>
       

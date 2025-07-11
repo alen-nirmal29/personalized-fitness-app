@@ -10,6 +10,8 @@ interface Human2DModelProps {
   showComparison?: boolean;
   interactive?: boolean;
   onMeasurementChange?: (measurements: Record<string, number>) => void;
+  progressMeasurements?: Record<string, number>; // New prop for post-workout measurements
+  showProgress?: boolean; // New prop to show progress comparison
 }
 
 type AnchorPoint = {
@@ -28,6 +30,8 @@ export default function Human2DModel({
   showComparison = false,
   interactive = true,
   onMeasurementChange,
+  progressMeasurements,
+  showProgress = false,
 }: Human2DModelProps) {
   const initialMeasurements = useMemo(() => ({
     shoulders: user?.currentMeasurements?.shoulders || 50,
@@ -37,13 +41,27 @@ export default function Human2DModel({
     legs: user?.currentMeasurements?.legs || 50,
   }), [user?.currentMeasurements]);
   
-  const [measurements, setMeasurements] = useState(initialMeasurements);
+  // Use progress measurements if showing progress, otherwise use current measurements
+  const displayMeasurements = useMemo(() => {
+    if (showProgress && progressMeasurements) {
+      return {
+        shoulders: progressMeasurements.shoulders || initialMeasurements.shoulders,
+        chest: progressMeasurements.chest || initialMeasurements.chest,
+        arms: progressMeasurements.arms || initialMeasurements.arms,
+        waist: progressMeasurements.waist || initialMeasurements.waist,
+        legs: progressMeasurements.legs || initialMeasurements.legs,
+      };
+    }
+    return initialMeasurements;
+  }, [showProgress, progressMeasurements, initialMeasurements]);
+  
+  const [measurements, setMeasurements] = useState(displayMeasurements);
   const [selectedAnchor, setSelectedAnchor] = useState<string | null>(null);
   const [sliderValue, setSliderValue] = useState(50);
   const [viewMode, setViewMode] = useState<'front' | 'back'>('front');
   
   const isFemale = user?.gender === 'female';
-  const centerX = showComparison ? 100 : 150;
+  const centerX = (showComparison || showProgress) ? 100 : 150;
   
   // Calculate body proportions based on measurements
   const bodyProps = useMemo(() => {
@@ -475,8 +493,11 @@ export default function Human2DModel({
     );
   };
 
-  // Render comparison with divider line
+  // Render comparison with divider line (for goals or progress)
   const renderComparisonWithDivider = () => {
+    if (showProgress && progressMeasurements) {
+      return renderProgressComparison();
+    }
     if (!showComparison || !goalMeasurements) return null;
     
     const goalProps = {
@@ -646,10 +667,201 @@ export default function Human2DModel({
         
         {/* Labels */}
         <SvgText x={centerX} y={325} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="13" fontWeight="bold">
-          Current
+          {showProgress ? 'Before' : 'Current'}
         </SvgText>
         <SvgText x={goalCenterX} y={325} textAnchor="middle" fill={Colors.dark.accent} fontSize="13" fontWeight="bold">
-          Goal
+          {showProgress ? 'After' : 'Goal'}
+        </SvgText>
+      </G>
+    );
+  };
+
+  // Render progress comparison (before vs after workout completion)
+  const renderProgressComparison = () => {
+    if (!showProgress || !progressMeasurements) return null;
+    
+    const progressProps = {
+      shoulderW: (progressMeasurements.shoulders / 50) * (isFemale ? 35 : 45),
+      chestW: (progressMeasurements.chest / 50) * (isFemale ? 32 : 40),
+      waistW: (progressMeasurements.waist / 50) * (isFemale ? 28 : 35),
+      armW: (progressMeasurements.arms / 50) * (isFemale ? 8 : 12),
+      legW: (progressMeasurements.legs / 50) * (isFemale ? 15 : 20),
+    };
+    
+    const afterCenterX = centerX + 140;
+    const dividerX = centerX + 70;
+    
+    return (
+      <G>
+        {/* Thick divider line */}
+        <Line 
+          x1={dividerX} 
+          y1={20} 
+          x2={dividerX} 
+          y2={320} 
+          stroke={Colors.dark.accent} 
+          strokeWidth="4" 
+          strokeDasharray="8,4"
+        />
+        
+        {/* Progress indicator */}
+        <SvgText 
+          x={dividerX} 
+          y={170} 
+          textAnchor="middle" 
+          fill={Colors.dark.accent} 
+          fontSize="16" 
+          fontWeight="bold"
+        >
+          ➜
+        </SvgText>
+        
+        {/* After workout body - with enhanced/improved proportions */}
+        <G transform={`translate(${afterCenterX - centerX}, 0)`}>
+          {/* Head */}
+          <Ellipse
+            cx={centerX}
+            cy={45}
+            rx={20}
+            ry={24}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          
+          {/* Hair */}
+          {viewMode === 'front' ? (
+            <Path
+              d={`M ${centerX - 20} 28 Q ${centerX} 18 ${centerX + 20} 28 Q ${centerX + 18} 35 ${centerX + 10} 30 Q ${centerX} 22 ${centerX - 10} 30 Q ${centerX - 18} 35 ${centerX - 20} 28`}
+              fill="url(#hairGradient)"
+              stroke={Colors.dark.accent}
+              strokeWidth="1.5"
+            />
+          ) : (
+            <Ellipse
+              cx={centerX}
+              cy={30}
+              rx={22}
+              ry={18}
+              fill="url(#hairGradient)"
+              stroke={Colors.dark.accent}
+              strokeWidth="1.5"
+            />
+          )}
+          
+          {/* Neck */}
+          <Ellipse
+            cx={centerX}
+            cy={73}
+            rx={6}
+            ry={10}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="1.5"
+          />
+          
+          {/* Shoulders - enhanced */}
+          <Ellipse
+            cx={centerX}
+            cy={85}
+            rx={progressProps.shoulderW}
+            ry={8}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          
+          {/* Chest - enhanced */}
+          <Ellipse
+            cx={centerX}
+            cy={110}
+            rx={progressProps.chestW}
+            ry={28}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          
+          {/* Enhanced muscle definition for progress */}
+          {!isFemale && viewMode === 'front' && (
+            <G opacity={0.6}>
+              <Line x1={centerX} y1={95} x2={centerX} y2={125} stroke={Colors.dark.accent} strokeWidth="2" />
+              <Line x1={centerX - 12} y1={102} x2={centerX + 12} y2={102} stroke={Colors.dark.accent} strokeWidth="1.5" />
+              <Line x1={centerX - 12} y1={112} x2={centerX + 12} y2={112} stroke={Colors.dark.accent} strokeWidth="1.5" />
+              <Line x1={centerX - 12} y1={122} x2={centerX + 12} y2={122} stroke={Colors.dark.accent} strokeWidth="1.5" />
+            </G>
+          )}
+          
+          {/* Waist - improved */}
+          <Ellipse
+            cx={centerX}
+            cy={160}
+            rx={progressProps.waistW}
+            ry={22}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          
+          {/* Arms - enhanced */}
+          <Ellipse
+            cx={centerX - progressProps.shoulderW - 8}
+            cy={130}
+            rx={progressProps.armW / 2}
+            ry={20}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          <Ellipse
+            cx={centerX + progressProps.shoulderW + 8}
+            cy={130}
+            rx={progressProps.armW / 2}
+            ry={20}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          
+          {/* Legs - enhanced */}
+          <Ellipse
+            cx={centerX - 12}
+            cy={210}
+            rx={progressProps.legW / 2}
+            ry={30}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          <Ellipse
+            cx={centerX + 12}
+            cy={210}
+            rx={progressProps.legW / 2}
+            ry={30}
+            fill="url(#progressGradient)"
+            stroke={Colors.dark.accent}
+            strokeWidth="2"
+          />
+          
+          {/* Progress glow effect */}
+          <Circle
+            cx={centerX}
+            cy={160}
+            r={80}
+            fill="none"
+            stroke={Colors.dark.accent}
+            strokeWidth="1"
+            opacity={0.2}
+            strokeDasharray="4,8"
+          />
+        </G>
+        
+        {/* Labels */}
+        <SvgText x={centerX} y={325} textAnchor="middle" fill={isFemale ? '#FFB6C1' : '#87CEEB'} fontSize="13" fontWeight="bold">
+          Before
+        </SvgText>
+        <SvgText x={afterCenterX} y={325} textAnchor="middle" fill={Colors.dark.accent} fontSize="13" fontWeight="bold">
+          After Workout
         </SvgText>
       </G>
     );
@@ -759,7 +971,7 @@ export default function Human2DModel({
         {/* Header with view toggle */}
         <View style={styles.header}>
           <Text style={styles.headerTitle}>
-            {viewMode === 'front' ? 'Front View' : 'Back View'}
+            {showProgress ? 'Progress Comparison' : (viewMode === 'front' ? 'Front View' : 'Back View')}
           </Text>
           <TouchableOpacity onPress={toggleView} style={styles.viewButton}>
             <Text style={styles.viewButtonText}>
@@ -771,7 +983,7 @@ export default function Human2DModel({
         {/* Main SVG container */}
         <View style={styles.svgWrapper}>
           <TouchableOpacity onPress={toggleView} style={styles.svgContainer}>
-            <Svg width={showComparison ? "360" : "260"} height="320" viewBox={showComparison ? "0 0 360 320" : "0 0 260 320"}>
+            <Svg width={(showComparison || showProgress) ? "360" : "260"} height="320" viewBox={(showComparison || showProgress) ? "0 0 360 320" : "0 0 260 320"}>
               <Defs>
                 <LinearGradient id="skinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                   <Stop offset="0%" stopColor={isFemale ? '#FFF0F0' : '#F0F8FF'} />
@@ -782,6 +994,11 @@ export default function Human2DModel({
                   <Stop offset="0%" stopColor={isFemale ? '#A0522D' : '#8B4513'} />
                   <Stop offset="50%" stopColor={isFemale ? '#8B4513' : '#654321'} />
                   <Stop offset="100%" stopColor={isFemale ? '#654321' : '#4A2C17'} />
+                </LinearGradient>
+                <LinearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <Stop offset="0%" stopColor={Colors.dark.accent} opacity={0.3} />
+                  <Stop offset="50%" stopColor={Colors.dark.accent} opacity={0.2} />
+                  <Stop offset="100%" stopColor={Colors.dark.accent} opacity={0.1} />
                 </LinearGradient>
               </Defs>
               
@@ -798,22 +1015,27 @@ export default function Human2DModel({
         </View>
         
         {/* Comparison legend */}
-        {showComparison && (
+        {(showComparison || showProgress) && (
           <View style={styles.comparisonLegend}>
             <View style={styles.legendItem}>
               <View style={[styles.legendColor, { backgroundColor: isFemale ? '#FFB6C1' : '#87CEEB' }]} />
-              <Text style={styles.legendText}>Current</Text>
+              <Text style={styles.legendText}>{showProgress ? 'Before' : 'Current'}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendColor, { backgroundColor: Colors.dark.accent, opacity: 0.6 }]} />
-              <Text style={styles.legendText}>Goal</Text>
+              <Text style={styles.legendText}>{showProgress ? 'After Workout' : 'Goal'}</Text>
             </View>
           </View>
         )}
         
         {/* Instructions */}
         <View style={styles.instructions}>
-          <Text style={styles.instructionText}>🎯 Tap colored points to adjust • 🔄 Tap model to switch views</Text>
+          <Text style={styles.instructionText}>
+            {showProgress 
+              ? '🏆 Your transformation progress after completing the workout plan'
+              : '🎯 Tap colored points to adjust • 🔄 Tap model to switch views'
+            }
+          </Text>
         </View>
       </View>
     </View>

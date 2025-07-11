@@ -189,6 +189,45 @@ export const useWorkoutSessionStore = create<WorkoutSessionStore>()(
         // Update stats
         get().updateStats();
         
+        // Update workout plan progress (import this dynamically to avoid circular deps)
+        try {
+          const { useWorkoutStore } = require('./workout-store');
+          const workoutStore = useWorkoutStore.getState();
+          
+          if (workoutStore.currentPlan) {
+            // Calculate progress based on completed workouts vs total plan workouts
+            const totalPlanWorkouts = workoutStore.currentPlan.schedule.filter(day => !day.restDay).length;
+            const planWorkouts = completedWorkouts.filter(w => 
+              w.workoutName.includes(workoutStore.currentPlan!.name) || 
+              workoutStore.currentPlan!.schedule.some(day => day.name.includes(w.workoutName))
+            ).length + 1; // +1 for current workout
+            
+            const progressPercentage = Math.min((planWorkouts / totalPlanWorkouts) * 100, 100);
+            workoutStore.updateWorkoutProgress(workoutStore.currentPlan.id, progressPercentage);
+            
+            // Generate progress measurements if we have user measurements
+            const { useAuthStore } = require('./auth-store');
+            const authStore = useAuthStore.getState();
+            
+            if (authStore.user?.currentMeasurements && progressPercentage > 0) {
+              const currentMeasurements = {
+                shoulders: authStore.user.currentMeasurements.shoulders,
+                chest: authStore.user.currentMeasurements.chest,
+                arms: authStore.user.currentMeasurements.arms,
+                waist: authStore.user.currentMeasurements.waist,
+                legs: authStore.user.currentMeasurements.legs,
+              };
+              workoutStore.generateProgressMeasurements(
+                currentMeasurements, 
+                workoutStore.currentPlan.specificGoal, 
+                progressPercentage
+              );
+            }
+          }
+        } catch (error) {
+          console.log('Could not update workout progress:', error);
+        }
+        
         // Clear session after a delay
         setTimeout(() => {
           set({ currentSession: null });

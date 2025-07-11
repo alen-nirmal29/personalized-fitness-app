@@ -219,6 +219,9 @@ export default function WorkoutSessionScreen() {
   }
 
   if (currentSession.state === 'completed') {
+    const { currentPlan, workoutProgress } = useWorkoutStore();
+    const planProgressPercentage = currentPlan ? (workoutProgress[currentPlan.id] || 0) : 0;
+    
     return (
       <View style={styles.container}>
         <View style={styles.completedContainer}>
@@ -247,13 +250,35 @@ export default function WorkoutSessionScreen() {
             </View>
           </Card>
           
-          <Button
-            title="Back to Home"
-            onPress={() => router.replace('/(tabs)')}
-            variant="primary"
-            size="large"
-            style={styles.backButton}
-          />
+          {/* Progress Update Card */}
+          {currentPlan && planProgressPercentage > 0 && (
+            <Card style={styles.progressCard}>
+              <Text style={styles.progressTitle}>Plan Progress Updated! 📈</Text>
+              <Text style={styles.progressSubtitle}>
+                You've completed {Math.round(planProgressPercentage)}% of your {currentPlan.name}
+              </Text>
+              <ProgressBar progress={planProgressPercentage / 100} height={8} />
+              <Text style={styles.progressNote}>
+                Check your Progress tab to see your body transformation!
+              </Text>
+            </Card>
+          )}
+          
+          <View style={styles.buttonContainer}>
+            <Button
+              title="View Progress"
+              onPress={() => router.replace('/(tabs)/progress')}
+              variant="outline"
+              style={styles.progressButton}
+            />
+            <Button
+              title="Back to Home"
+              onPress={() => router.replace('/(tabs)')}
+              variant="primary"
+              size="large"
+              style={styles.backButton}
+            />
+          </View>
         </View>
       </View>
     );
@@ -439,6 +464,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.dark.subtext,
     marginTop: 4,
+  },
+  progressCard: {
+    width: '100%',
+    marginBottom: 24,
+    backgroundColor: 'rgba(59, 95, 227, 0.05)',
+    borderColor: 'rgba(59, 95, 227, 0.2)',
+    borderWidth: 1,
+  },
+  progressTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.dark.accent,
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  progressSubtitle: {
+    fontSize: 14,
+    color: Colors.dark.text,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  progressNote: {
+    fontSize: 12,
+    color: Colors.dark.subtext,
+    textAlign: 'center',
+    marginTop: 12,
+    fontStyle: 'italic',
+  },
+  buttonContainer: {
+    width: '100%',
+    gap: 12,
+  },
+  progressButton: {
+    width: '100%',
   },
   backButton: {
     width: '100%',
