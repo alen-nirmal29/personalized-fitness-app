@@ -213,10 +213,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 8,
+    gap: 8,
   },
   genderButton: {
     flex: 1,
-    marginHorizontal: 4,
+    minWidth: 0,
+    paddingHorizontal: 8,
   },
   errorText: {
     color: Colors.dark.error,

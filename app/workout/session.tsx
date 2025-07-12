@@ -231,9 +231,10 @@ export default function WorkoutSessionScreen() {
     );
   }
 
+  const { currentPlan, workoutProgress } = useWorkoutStore();
+  const planProgressPercentage = currentPlan ? (workoutProgress[currentPlan.id] || 0) : 0;
+  
   if (currentSession.state === 'completed') {
-    const { currentPlan, workoutProgress } = useWorkoutStore();
-    const planProgressPercentage = currentPlan ? (workoutProgress[currentPlan.id] || 0) : 0;
     
     return (
       <View style={styles.container}>

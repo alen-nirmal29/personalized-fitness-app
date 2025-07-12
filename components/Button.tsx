@@ -108,11 +108,17 @@ export default function Button({
   };
 
   if (variant === 'primary') {
+    const sizeStyle = getSizeStyle();
+    const gradientStyle = {
+      ...styles.gradient,
+      borderRadius: sizeStyle.borderRadius || 12,
+    };
+    
     return (
       <TouchableOpacity
         onPress={onPress}
         disabled={disabled || isLoading}
-        style={[styles.button, getSizeStyle(), getButtonStyle(), disabled && styles.disabledButton, style]}
+        style={[styles.button, sizeStyle, getButtonStyle(), disabled && styles.disabledButton, style]}
         activeOpacity={0.8}
         {...rest}
       >
@@ -120,7 +126,7 @@ export default function Button({
           colors={[Colors.dark.gradient.primary, Colors.dark.gradient.secondary]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.gradient}
+          style={gradientStyle}
         >
           {renderContent()}
         </LinearGradient>
@@ -143,15 +149,15 @@ export default function Button({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 16,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
-    minWidth: 120,
+    minWidth: 100,
   },
   gradient: {
-    borderRadius: 16,
+    borderRadius: 12,
     width: '100%',
     height: '100%',
     alignItems: 'center',
@@ -178,18 +184,21 @@ const styles = StyleSheet.create({
   },
   smallButton: {
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    minHeight: 44,
+    paddingHorizontal: 16,
+    minHeight: 48,
+    borderRadius: 12,
   },
   mediumButton: {
     paddingVertical: 16,
     paddingHorizontal: 32,
-    minHeight: 52,
+    minHeight: 56,
+    borderRadius: 12,
   },
   largeButton: {
     paddingVertical: 20,
     paddingHorizontal: 40,
-    minHeight: 60,
+    minHeight: 64,
+    borderRadius: 12,
   },
   primaryText: {
     color: '#fff',
@@ -208,13 +217,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   smallText: {
-    fontSize: 14,
+    fontSize: 13,
   },
   mediumText: {
-    fontSize: 16,
+    fontSize: 15,
   },
   largeText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
   },
 });
