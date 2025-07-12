@@ -51,7 +51,7 @@ const defaultExercises = [
 
 export default function WorkoutSessionScreen() {
   const { workoutId } = useLocalSearchParams();
-  const { currentPlan } = useWorkoutStore();
+  const workoutStore = useWorkoutStore();
   const {
     currentSession,
     startWorkout,
@@ -69,8 +69,8 @@ export default function WorkoutSessionScreen() {
 
   // Get today's workout or use default
   const getTodaysWorkout = () => {
-    if (currentPlan?.schedule && currentPlan.schedule.length > 0) {
-      return currentPlan.schedule[0];
+    if (workoutStore.currentPlan?.schedule && workoutStore.currentPlan.schedule.length > 0) {
+      return workoutStore.currentPlan.schedule[0];
     }
     
     // Return default workout
@@ -231,8 +231,7 @@ export default function WorkoutSessionScreen() {
     );
   }
 
-  const { currentPlan, workoutProgress } = useWorkoutStore();
-  const planProgressPercentage = currentPlan ? (workoutProgress[currentPlan.id] || 0) : 0;
+  const planProgressPercentage = workoutStore.currentPlan ? (workoutStore.workoutProgress[workoutStore.currentPlan.id] || 0) : 0;
   
   if (currentSession.state === 'completed') {
     
@@ -265,11 +264,11 @@ export default function WorkoutSessionScreen() {
           </Card>
           
           {/* Progress Update Card */}
-          {currentPlan && planProgressPercentage > 0 && (
+          {workoutStore.currentPlan && planProgressPercentage > 0 && (
             <Card style={styles.progressCard}>
               <Text style={styles.progressTitle}>Plan Progress Updated! 📈</Text>
               <Text style={styles.progressSubtitle}>
-                You've completed {Math.round(planProgressPercentage)}% of your {currentPlan.name}
+                You've completed {Math.round(planProgressPercentage)}% of your {workoutStore.currentPlan.name}
               </Text>
               <ProgressBar progress={planProgressPercentage / 100} height={8} />
               <Text style={styles.progressNote}>
