@@ -143,14 +143,15 @@ export default function Button({
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
     gap: 8,
+    minWidth: 120,
   },
   gradient: {
-    borderRadius: 12,
+    borderRadius: 16,
     width: '100%',
     height: '100%',
     alignItems: 'center',
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   },
   outlineButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: Colors.dark.accent,
   },
   textButton: {
@@ -176,17 +177,19 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   smallButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    minHeight: 44,
   },
   mediumButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    minHeight: 52,
   },
   largeButton: {
     paddingVertical: 20,
     paddingHorizontal: 40,
-    minHeight: 56,
+    minHeight: 60,
   },
   primaryText: {
     color: '#fff',
