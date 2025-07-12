@@ -105,13 +105,14 @@ export const useAuthStore = create<AuthStore>()(
           await AsyncStorage.removeItem('workout-session-storage');
           console.log('Storage cleared');
           
-          // Clear all auth state
+          // Clear all auth state completely
           set({
             isAuthenticated: false,
             user: null,
             error: null,
             isLoading: false,
             isInitialized: true, // Keep initialized true
+            isInOnboarding: false, // Reset onboarding state
           });
           
           console.log('Auth state cleared - logout complete');
@@ -124,6 +125,7 @@ export const useAuthStore = create<AuthStore>()(
             error: null,
             isLoading: false,
             isInitialized: true,
+            isInOnboarding: false,
           });
         }
       },

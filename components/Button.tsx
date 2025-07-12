@@ -184,8 +184,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   largeButton: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    minHeight: 56,
   },
   primaryText: {
     color: '#fff',
@@ -211,5 +212,6 @@ const styles = StyleSheet.create({
   },
   largeText: {
     fontSize: 18,
+    fontWeight: '700',
   },
 });

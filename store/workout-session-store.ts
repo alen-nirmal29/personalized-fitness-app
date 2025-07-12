@@ -99,28 +99,40 @@ export const useWorkoutSessionStore = create<WorkoutSessionStore>()(
         const { currentSession } = get();
         if (!currentSession) return;
         
-        const currentExercise = currentSession.exercises[currentSession.currentExerciseIndex];
-        const updatedCompletedExercises = [...currentSession.completedExercises, currentExercise.id];
-        
-        // Move to next exercise or complete workout
-        if (currentSession.currentExerciseIndex < currentSession.exercises.length - 1) {
-          const nextExerciseIndex = currentSession.currentExerciseIndex + 1;
-          const nextExercise = currentSession.exercises[nextExerciseIndex];
+        try {
+          const currentExercise = currentSession.exercises[currentSession.currentExerciseIndex];
+          const updatedCompletedExercises = [...currentSession.completedExercises, currentExercise.id];
           
-          set({
-            currentSession: {
-              ...currentSession,
-              currentExerciseIndex: nextExerciseIndex,
-              currentSet: 1,
-              totalSets: nextExercise.sets,
-              completedExercises: updatedCompletedExercises,
-              state: 'active',
-              timerSeconds: 0,
-              isRestTimer: false,
-            }
-          });
-        } else {
-          // All exercises completed
+          // Move to next exercise or complete workout
+          if (currentSession.currentExerciseIndex < currentSession.exercises.length - 1) {
+            const nextExerciseIndex = currentSession.currentExerciseIndex + 1;
+            const nextExercise = currentSession.exercises[nextExerciseIndex];
+            
+            set({
+              currentSession: {
+                ...currentSession,
+                currentExerciseIndex: nextExerciseIndex,
+                currentSet: 1,
+                totalSets: nextExercise.sets,
+                completedExercises: updatedCompletedExercises,
+                state: 'active',
+                timerSeconds: 0,
+                isRestTimer: false,
+              }
+            });
+          } else {
+            // All exercises completed
+            set({
+              currentSession: {
+                ...currentSession,
+                completedExercises: updatedCompletedExercises,
+              }
+            });
+            get().completeWorkout();
+          }
+        } catch (error) {
+          console.error('Error in completeExercise:', error);
+          // Fallback to complete workout
           get().completeWorkout();
         }
       },

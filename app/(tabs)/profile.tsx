@@ -27,12 +27,16 @@ export default function ProfileScreen() {
               await logout();
               console.log('Logout completed, navigating to welcome screen...');
               
-              // Navigate to welcome screen immediately after logout
-              router.replace('/');
+              // Small delay to ensure state is cleared
+              setTimeout(() => {
+                router.replace('/');
+              }, 100);
             } catch (error) {
               console.error('Logout error:', error);
               // Force navigation even if logout fails
-              router.replace('/');
+              setTimeout(() => {
+                router.replace('/');
+              }, 100);
             }
           },
           style: 'destructive',

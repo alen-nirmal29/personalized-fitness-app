@@ -146,18 +146,31 @@ export default function WorkoutSessionScreen() {
       resumeWorkout();
     } else {
       // Complete set and start rest
-      nextSet();
+      const currentExercise = currentSession.exercises[currentSession.currentExerciseIndex];
+      
       if (currentSession.currentSet < currentSession.totalSets) {
-        const currentExercise = currentSession.exercises[currentSession.currentExerciseIndex];
+        nextSet();
         setTimer(currentExercise.restTime);
         setIsTimerRunning(true);
+      } else {
+        // Last set of exercise, complete exercise
+        handleCompleteExercise();
       }
     }
   };
 
   const handleCompleteExercise = () => {
-    completeExercise();
-    setTimer(0);
+    if (!currentSession) return;
+    
+    try {
+      completeExercise();
+      setTimer(0);
+      setIsTimerRunning(false);
+    } catch (error) {
+      console.error('Error completing exercise:', error);
+      // If there's an error, still try to complete the workout
+      completeWorkout();
+    }
   };
 
   const handleEndWorkout = () => {
@@ -356,9 +369,10 @@ export default function WorkoutSessionScreen() {
           />
           
           <Button
-            title={currentSession.isRestTimer ? 'Skip Rest' : 'Next Set'}
+            title={currentSession.isRestTimer ? 'Skip Rest' : (currentSession.currentSet >= currentSession.totalSets ? 'Complete Exercise' : 'Next Set')}
             onPress={handleNextSet}
             variant="primary"
+            size="large"
             style={styles.controlButton}
             leftIcon={<SkipForward size={20} color="#fff" />}
           />
@@ -369,7 +383,7 @@ export default function WorkoutSessionScreen() {
           <Button
             title="Complete Exercise"
             onPress={handleCompleteExercise}
-            variant="primary"
+            variant="outline"
             size="large"
             style={styles.actionButton}
           />
